@@ -18,7 +18,7 @@ $ npm install --save-dev scalajs-webpack
 | `test:lint`          | Test TypeScript files for linting errors                                         |
 | `test:package`       | Test that paths in `package.json` exist                                          |
 | `test:tslint-config` | Test that `tslint.json` does not contain rules conflicting with formatting rules |
-| `test:unit`          | Run Mocha unit tests                                                             |
+| `test:unit`          | Run unit tests                                                                   |
 | `fix`                | Run all fixes                                                                    |
 | `fix:lint`           | Fix linting errors in TypeScript files                                           |
 | `fix:format`         | Fix formatting errors for all JavaScript, TypeScript, JSON and YAML files        |
