@@ -1,5 +1,7 @@
 # `scalajs-webpack`: Webpack loader for Scala.js
 
+[![Build Status](https://travis-ci.com/MaximeKjaer/scalajs-webpack.svg?token=soqG4sgcMQUgpCtPSUUr&branch=master)](https://travis-ci.com/MaximeKjaer/scalajs-webpack)
+
 ```console
 $ npm install --save-dev scalajs-webpack
 ```
