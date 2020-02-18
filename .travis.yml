@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - node # Use the latest stable release of node
+cache:
+  directories:
+    - node_modules # Cache node_modules to speed up installation
+notifications:
+  email: false
+script:
+  - npm run build
+  - npm run test
+deploy:
+  - provider: npm
+    skip_cleanup: true # Do not delete dist before deployment
+    email: maxime.kjaer@gmail.com
+    on:
+      tags: true
+      repo: MaximeKjaer/scalajs-webpack
