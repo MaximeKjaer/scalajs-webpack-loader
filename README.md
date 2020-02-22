@@ -1,28 +1,7 @@
-# `scalajs-webpack`: Webpack loader for Scala.js
+## Contributing
 
-[![Build Status](https://travis-ci.com/MaximeKjaer/scalajs-webpack.svg?token=soqG4sgcMQUgpCtPSUUr&branch=master)](https://travis-ci.com/MaximeKjaer/scalajs-webpack)
-
-```console
-$ npm install --save-dev scalajs-webpack
-```
-
-## Commands
-
-| `npm run ...`        | Description                                                                      |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `build`              | Run all build steps                                                              |
-| `build:ts`           | Compile TypeScript files in `src` to `dist`                                      |
-| `clean`              | Delete all build artifacts                                                       |
-| `test`               | Run all tests                                                                    |
-| `test:format`        | Test code formatting for all JavaScript, TypeScript, JSON and YAML files         |
-| `test:lint`          | Test TypeScript files for linting errors                                         |
-| `test:package`       | Test that paths in `package.json` exist                                          |
-| `test:tslint-config` | Test that `tslint.json` does not contain rules conflicting with formatting rules |
-| `test:unit`          | Run unit tests                                                                   |
-| `fix`                | Run all fixes                                                                    |
-| `fix:lint`           | Fix linting errors in TypeScript files                                           |
-| `fix:format`         | Fix formatting errors for all JavaScript, TypeScript, JSON and YAML files        |
-
-## Releasing versions
-
-To release a new version, run `npm version patch`, `npm version minor` or `npm version major`. Travis CI will automatically deploy the new version once the CI build passes.
+- Integration tests are done with Jest with `npm run test:integration`
+- DevDependencies for integration tests go in `package.json`
+- Runtime dependencies go in `build.sbt`. Some of them may be JS dependencies, and are managed by `scalajs-bundler`.
+- Scala source code is formatted by [scalafmt](https://scalameta.org/scalafmt/) in sbt
+- NPM source code is formatted by Prettier with npm

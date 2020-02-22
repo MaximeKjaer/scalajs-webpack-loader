@@ -1,9 +1,0 @@
-{
-  "extends": ["tslint:recommended", "tslint-config-prettier"],
-  "rules": {
-    "member-access": [true, "no-public"],
-    "interface-name": false,
-    "no-default-export": true,
-    "no-restricted-globals": true
-  }
-}

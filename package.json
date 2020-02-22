@@ -1,57 +1,40 @@
 {
   "name": "scalajs-webpack",
   "version": "0.0.0",
-  "description": "Webpack loader for Scala.js",
-  "main": "dist/index.js",
+  "description": "",
+  "config": {
+    "prettier_files": "**/*.{json,ts,tsx,js,jsx}"
+  },
+  "main": "./target/scala-2.13/scalajs-bundler/main/scalajs-webpack-loader-fastopt.js",
+  "scripts": {
+    "test": "npm-run-all test:*",
+    "test:package": "pkg-ok",
+    "test:format": "prettier --check $npm_package_config_prettier_files",
+    "test:integration": "jest",
+    "fix": "npm-run-all fix:*",
+    "fix:format": "prettier --write $npm_package_config_prettier_files"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MaximeKjaer/scalajs-webpack.git"
   },
-  "homepage": "https://github.com/MaximeKjaer/scalajs-webpack#readme",
+  "keywords": [],
+  "author": "Maxime Kjaer <maxime.kjaer@gmail.com",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/MaximeKjaer/scalajs-webpack/issues"
   },
-  "keywords": [
-    "scala.js",
-    "webpack"
-  ],
-  "author": "Maxime Kjaer <maxime.kjaer@gmail.com>",
-  "license": "MIT",
-  "files": [
-    "/dist",
-    "!/dist/**/*.js.map",
-    "!/dist/**/*.tsbuildinfo"
-  ],
-  "config": {
-    "formatted": "**/*.{json,ts,tsx,js,jsx,yaml,yml}"
-  },
-  "scripts": {
-    "build": "npm-run-all build:*",
-    "build:ts": "tsc --project tsconfig.build.json",
-    "clean": "rimraf dist",
-    "test": "npm-run-all test:*",
-    "test:format": "prettier --check $npm_package_config_formatted",
-    "test:lint": "tslint --project tsconfig.json",
-    "test:package": "pkg-ok",
-    "test:tslint-config": "tslint-config-prettier-check ./tslint.json",
-    "test:unit": "jest",
-    "fix": "npm-run-all fix:lint fix:format",
-    "fix:format": "prettier --write $npm_package_config_formatted",
-    "fix:lint": "tslint --fix --project tsconfig.json",
-    "preversion": "npm-run-all clean build test",
-    "postversion": "git push && git push --tags"
-  },
+  "homepage": "https://github.com/MaximeKjaer/scalajs-webpack#readme",
   "devDependencies": {
-    "@types/jest": "^25.1.2",
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "babel-jest": "^25.1.0",
+    "babel-preset-env": "^1.7.0",
     "jest": "^25.1.0",
+    "memory-fs": "^0.5.0",
     "npm-run-all": "^4.1.5",
     "pkg-ok": "^2.3.1",
     "prettier": "^1.19.1",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^25.2.0",
-    "ts-node": "^8.6.2",
-    "tslint": "^6.0.0",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.7.5"
+    "webpack": "^4.41.6"
   }
 }
