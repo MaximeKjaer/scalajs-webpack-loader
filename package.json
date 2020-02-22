@@ -5,8 +5,11 @@
   "config": {
     "prettier_files": "**/*.{json,ts,tsx,js,jsx}"
   },
-  "main": "./target/scala-2.13/scalajs-bundler/main/scalajs-webpack-loader-fastopt.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "npm-run-all build:scalajs build:bundle",
+    "build:scalajs": "sbt fastOptJS",
+    "build:bundle": "webpack",
     "test": "npm-run-all test:*",
     "test:package": "pkg-ok",
     "test:format": "prettier --check $npm_package_config_prettier_files",
@@ -35,6 +38,10 @@
     "npm-run-all": "^4.1.5",
     "pkg-ok": "^2.3.1",
     "prettier": "^1.19.1",
-    "webpack": "^4.41.6"
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  },
+  "dependencies": {
+    "loader-utils": "^1.4.0"
   }
 }

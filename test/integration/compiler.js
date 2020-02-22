@@ -8,14 +8,14 @@ export default (fixture, options = {}) => {
     entry: `./${fixture}`,
     output: {
       path: path.resolve(__dirname),
-      filename: "bundle.js"
+      filename: "test-bundle.js"
     },
     module: {
       rules: [
         {
           test: /\.txt$/,
           use: {
-            loader: path.resolve(__dirname, "reexport.js"),
+            loader: path.resolve(__dirname, "../../dist/bundle.js"),
             options: {
               name: "Alice"
             }
