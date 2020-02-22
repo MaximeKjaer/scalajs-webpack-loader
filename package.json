@@ -10,12 +10,14 @@
     "build": "npm-run-all build:scalajs build:bundle",
     "build:scalajs": "sbt fastOptJS",
     "build:bundle": "webpack",
-    "test": "npm-run-all test:*",
+    "test": "npm-run-all test:integration test:package test:format:*",
     "test:package": "pkg-ok",
-    "test:format": "prettier --check $npm_package_config_prettier_files",
+    "test:format:scala": "sbt scalafmtCheckAll",
+    "test:format:js": "prettier --check $npm_package_config_prettier_files",
     "test:integration": "jest",
-    "fix": "npm-run-all fix:*",
-    "fix:format": "prettier --write $npm_package_config_prettier_files"
+    "fix": "npm-run-all fix:**",
+    "fix:format:js": "prettier --write $npm_package_config_prettier_files",
+    "fix:format:scala": "sbt scalafmtAll"
   },
   "repository": {
     "type": "git",
