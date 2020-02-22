@@ -1,3 +1,6 @@
 target
 src
 project
+dist
+.bloop
+.metals

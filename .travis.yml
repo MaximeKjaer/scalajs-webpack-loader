@@ -9,6 +9,5 @@ before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 script:
-  - sbt "fastOptJS::webpack"
-  - npm test
-  - sbt scalafmtCheckAll
+  - npm run build
+  - npm run test

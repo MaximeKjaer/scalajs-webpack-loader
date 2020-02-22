@@ -5,7 +5,7 @@
   "config": {
     "prettier_files": "**/*.{json,ts,tsx,js,jsx}"
   },
-  "main": "dist/index.js",
+  "main": "dist/bundle.js",
   "scripts": {
     "build": "npm-run-all build:scalajs build:bundle",
     "build:scalajs": "sbt fastOptJS",
