@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "config": {
-    "prettier_files": "**/*.{json,ts,tsx,js,jsx}"
+    "prettier_files": "**/*.{json,ts,tsx,js,jsx}",
+    "scalafmt_files": "src/main/scala project/*.sbt ./*.sbt"
   },
   "main": "dist/bundle.js",
   "scripts": {
@@ -15,13 +16,15 @@
     "start:bundle": "webpack --watch --config webpack.dev.js",
     "test": "npm-run-all test:integration test:package test:format:*",
     "test:package": "pkg-ok",
-    "test:format:scala": "sbt scalafmtCheckAll",
+    "test:format:scala": "scalafmt --test $npm_package_config_scalafmt_files || sbt scalafmtCheckAll",
     "test:format:js": "prettier --check $npm_package_config_prettier_files",
     "test:integration": "jest",
     "fix": "npm-run-all fix:**",
+    "fix:format:scala": "scalafmt $npm_package_config_scalafmt_files || sbt scalafmtAll",
     "fix:format:js": "prettier --write $npm_package_config_prettier_files",
-    "fix:format:scala": "sbt scalafmtAll",
-    "clean": "rimraf target dist"
+    "clean": "npm-run-all clean:*",
+    "clean:scala": "sbt clean",
+    "clean:js": "rimraf dist"
   },
   "repository": {
     "type": "git",
