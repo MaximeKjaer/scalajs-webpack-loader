@@ -1,3 +1,3 @@
-import { loader } from "scalajs-webpack-loader-fastopt.js";
+import { loader } from "scalajs-webpack-loader";
 
 export default loader;
