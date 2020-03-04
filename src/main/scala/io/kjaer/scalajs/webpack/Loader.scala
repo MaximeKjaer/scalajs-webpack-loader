@@ -11,7 +11,7 @@ trait Options extends js.Object {
 }
 
 object Loader {
-  @JSExportTopLevel("loader")
+  @JSExportTopLevel("default")
   val loader: js.ThisFunction1[LoaderContext, String, String] =
     (self: LoaderContext, source: String) => {
       val options = getOptions(self).asInstanceOf[Options]

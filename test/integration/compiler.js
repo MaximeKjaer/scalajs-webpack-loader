@@ -15,7 +15,7 @@ export default (fixture, options = {}) => {
         {
           test: /\.txt$/,
           use: {
-            loader: path.resolve(__dirname, "../../dist/bundle.js"),
+            loader: __BUNDLE__,
             options: {
               name: "Alice"
             }

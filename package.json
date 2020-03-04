@@ -8,23 +8,19 @@
   },
   "main": "dist/bundle.js",
   "scripts": {
-    "build": "npm-run-all build:scalajs build:bundle",
-    "build:scalajs": "sbt fullOptJS",
-    "build:bundle": "webpack --config webpack.prod.js",
-    "start": "npm-run-all --parallel start:*",
+    "build": "sbt fullOptJS",
+    "start": "npm-run-all --parallel start:**",
     "start:scalajs": "sbt ~fastOptJS",
-    "start:bundle": "webpack --watch --config webpack.dev.js",
+    "start:test": "jest --config jest.dev.js",
     "test": "npm-run-all test:integration test:package test:format:*",
     "test:package": "pkg-ok",
     "test:format:scala": "scalafmt --test $npm_package_config_scalafmt_files || sbt scalafmtCheckAll",
     "test:format:js": "prettier --check $npm_package_config_prettier_files",
-    "test:integration": "jest",
+    "test:integration": "jest --config jest.prod.js",
     "fix": "npm-run-all fix:**",
     "fix:format:scala": "scalafmt $npm_package_config_scalafmt_files || sbt scalafmtAll",
     "fix:format:js": "prettier --write $npm_package_config_prettier_files",
-    "clean": "npm-run-all clean:*",
-    "clean:scala": "sbt clean",
-    "clean:js": "rimraf dist"
+    "clean": "sbt clean"
   },
   "repository": {
     "type": "git",
@@ -49,8 +45,7 @@
     "prettier": "^1.19.1",
     "rimraf": "^3.0.2",
     "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11",
-    "webpack-merge": "^4.2.2"
+    "webpack-cli": "^3.3.11"
   },
   "dependencies": {
     "loader-utils": "^1.4.0"

@@ -9,4 +9,4 @@ libraryDependencies ++= Seq(
   "org.scalablytyped" %%% "webpack" % "4.41-dt-20200209Z-7b3b5d"
 )
 
-scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) }
