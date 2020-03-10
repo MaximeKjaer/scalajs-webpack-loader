@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "CommonJS",
+    "strict": true,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "noEmit": true
+  },
+  "include": ["test"]
+}

@@ -1,6 +1,7 @@
 target
-src
 project
+src/main/scala
 dist
 .bloop
 .metals
+*.sbt

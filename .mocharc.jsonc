@@ -1,0 +1,5 @@
+{
+  "require": "ts-node/register",
+  "spec": "test/integration/*.test.ts",
+  "watch-files": ["test/**", "target/scala-*/*opt.js"]
+}
