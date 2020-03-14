@@ -1,6 +1,7 @@
-const path = require("path");
+import * as path from "path";
+import * as webpack from "webpack";
 
-const mode =
+const mode: "production" | "development" =
   process.env.NODE_ENV == "production" ? "production" : "development";
 
 const scalaJSBundle = path.resolve(
@@ -10,7 +11,7 @@ const scalaJSBundle = path.resolve(
   }.js`
 );
 
-module.exports = {
+const config: webpack.Configuration = {
   entry: "./src/main/js/index.js",
   mode,
   target: "node",
@@ -27,3 +28,5 @@ module.exports = {
     }
   }
 };
+
+export default config;

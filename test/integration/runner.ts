@@ -7,13 +7,17 @@ const mode: "production" | "development" =
 
 const loader = path.resolve(__dirname, "../../dist/bundle.js");
 
-export function run(fixture: string): Promise<webpack.Stats> {
+export async function run(fixture: string): Promise<webpack.Stats> {
+  const fixtureDirectory = path.join(__dirname, "fixtures", fixture);
+  const { default: config } = await import(
+    path.join(fixtureDirectory, "webpack.config.ts")
+  );
+
   const compiler = webpack({
     mode,
-    context: __dirname,
-    entry: `./${fixture}`,
+    context: fixtureDirectory,
     output: {
-      path: path.resolve(__dirname),
+      path: "/",
       filename: "test-bundle.js"
     },
     target: "node",
@@ -29,7 +33,8 @@ export function run(fixture: string): Promise<webpack.Stats> {
           }
         }
       ]
-    }
+    },
+    ...config
   });
 
   compiler.outputFileSystem = new MemoryFileSystem();
@@ -37,10 +42,9 @@ export function run(fixture: string): Promise<webpack.Stats> {
   return new Promise((resolve, reject) => {
     compiler.run((err, stats) => {
       if (err) reject(err);
-      if (stats.hasErrors())
+      else if (stats.hasErrors())
         reject(new Error(stats.toJson().errors.join("\n")));
-
-      resolve(stats);
+      else resolve(stats);
     });
   });
 }
