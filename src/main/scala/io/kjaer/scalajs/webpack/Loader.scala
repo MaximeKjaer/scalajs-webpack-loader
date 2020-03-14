@@ -23,6 +23,9 @@ object Loader {
         throw new Error("Async loaders are not supported")
       }
 
+      val logger = getLogger(WebpackLoggerOptions(name = "scalajs-loader"))
+      logger.info("test")
+
       val result = output(self, source)
       callback(js.undefined, result, js.undefined)
     }
