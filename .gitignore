@@ -8,6 +8,9 @@
 .bloop/
 project/metals.sbt
 
+# IntelliJ
+.idea
+
 # sbt
 dist/*
 target/
