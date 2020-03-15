@@ -12,6 +12,7 @@ const scalaJSBundle = path.resolve(
 );
 
 const config: webpack.Configuration = {
+  context: path.resolve(__dirname),
   entry: "./src/main/js/index.js",
   mode,
   target: "node",
