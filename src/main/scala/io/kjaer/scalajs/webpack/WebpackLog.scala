@@ -11,13 +11,31 @@ object getLogger extends js.Object {
 
 @js.native
 trait WebpackLoggerOptions extends js.Object {
-  // Specifies the name of the logger to create. This value will be part of the log output prefix.
+
+  /**
+    * Specifies the name of the logger to create. This value will be part of the log output prefix.
+    */
   val name: String
+
+  /**
+    * Specifies the level the logger should use. A logger will not produce output for any log level
+    * beneath the specified level. Valid level names, and their order are:
+    *
+    *     "trace", "debug", "info", "warn", "error", "silent".
+    *
+    * For example, If a level was passed as { level: 'warn'} then only calls to warn and error will be
+    * displayed in the terminal.
+    */
+  val level: js.UndefOr[String]
+
 }
 
 object WebpackLoggerOptions {
-  def apply(name: String): WebpackLoggerOptions =
-    js.Dynamic.literal(name = name).asInstanceOf[WebpackLoggerOptions]
+  def apply(
+      name: String,
+      level: js.UndefOr[String] = js.undefined
+  ): WebpackLoggerOptions =
+    js.Dynamic.literal(name = name, level = level).asInstanceOf[WebpackLoggerOptions]
 }
 
 /**

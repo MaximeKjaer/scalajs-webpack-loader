@@ -1,5 +1,6 @@
 package io.kjaer.scalajs.webpack
 
+import coursier.cache.CacheLogger
 import coursier.{Dependency, MavenRepository, Module, Resolve}
 import coursier.util.{Artifact, Gather, Task}
 
@@ -16,7 +17,9 @@ object FetchDependencies {
   case class FetchException(errors: Seq[String])
       extends Exception("An error happened while fetching artifacts")
 
-  def fetch(dependencies: Seq[Dependency]): Future[Map[Dependency, String]] =
+  def fetch(
+      dependencies: Seq[Dependency]
+  )(implicit logger: WebpackLogger): Future[Map[Dependency, String]] =
     resolveDependencies(dependencies)
       .flatMap(fetchArtifacts)
       .map(file => dependencies.zip(file).toMap)
@@ -35,13 +38,17 @@ object FetchDependencies {
           Future.successful(resolution.artifacts())
       }
 
-  private def fetchArtifacts(artifacts: Seq[Artifact]): Future[Seq[String]] =
+  private def fetchArtifacts(
+      artifacts: Seq[Artifact]
+  )(implicit logger: WebpackLogger): Future[Seq[String]] = {
+    val cache = new DependencyCache(new WebpackCacheLogger(logger))
     Gather[Task]
-      .gather(artifacts.map(new DependencyCache().fetch(_).run))
+      .gather(artifacts.map(cache.fetch(_).run))
       .future()
       .flatMap { artifacts =>
         val (errors, files) = artifacts.partitionMap(identity)
         if (errors.nonEmpty) Future.failed(FetchException(errors))
         else Future.successful(files)
       }
+  }
 }

@@ -34,7 +34,10 @@ object Loader {
         js.undefined
       )
 
-      val logger = getLogger(WebpackLoggerOptions(name = "scalajs-loader"))
+      implicit val logger: WebpackLogger = getLogger(
+        WebpackLoggerOptions(name = "scalajs-loader", level = "debug")
+      )
+
       val cacheDir = path.join(path.resolve("."), ".cache")
       // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
@@ -70,7 +73,7 @@ object Loader {
   def downloadDependencies(
       dependencies: Seq[Dependency],
       cacheDirectory: String
-  ): Future[Map[Dependency, String]] =
+  )(implicit logger: WebpackLogger): Future[Map[Dependency, String]] =
     FetchDependencies
       .fetch(dependencies)
       .map(_.map {
