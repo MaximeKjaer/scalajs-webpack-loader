@@ -10,7 +10,6 @@ import io.kjaer.scalajs.webpack.FetchDependencies.{
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
 import typings.node.{fsMod => fs}
-import typings.node.{osMod => os}
 import typings.node.pathMod.{^ => path}
 import typings.loaderUtils.mod.getOptions
 import typings.node.fsMod.MakeDirectoryOptions
@@ -20,11 +19,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
-
-@js.native
-trait Options extends js.Object {
-  val name: String
-}
 
 object Loader {
   @JSExportTopLevel("default")
