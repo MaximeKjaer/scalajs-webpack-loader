@@ -34,31 +34,31 @@ trait WebpackLogger extends js.Object {
   /**
     * For error messages
     */
-  def error(message: js.UndefOr[String]): Unit = js.native
+  def error(message: js.Any, optionalParams: js.Any*): Unit = js.native
 
   /**
     * For warnings
     */
-  def warn(message: js.UndefOr[String]): Unit = js.native
+  def warn(message: js.Any, optionalParams: js.Any*): Unit = js.native
 
   /**
     * For important messages
     */
-  def info(message: js.UndefOr[String]): Unit = js.native
+  def info(message: js.Any, optionalParams: js.Any*): Unit = js.native
 
   /**
     * For unimportant messages
     */
-  def log(message: js.UndefOr[String]): Unit = js.native
+  def log(message: js.Any, optionalParams: js.Any*): Unit = js.native
 
   /**
     * For debugging information. These messages are displayed only when user had opted-in to see
     * debug logging for specific modules.
     */
-  def debug(message: js.UndefOr[String]): Unit = js.native
+  def debug(message: js.Any, optionalParams: js.Any*): Unit = js.native
 
   /**
     * To display a stack trace. Displayed like [[debug]]
     */
-  def trace(message: js.UndefOr[String]): Unit = js.native
+  def trace(message: js.Any, optionalParams: js.Any*): Unit = js.native
 }
