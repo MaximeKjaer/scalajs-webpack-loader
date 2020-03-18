@@ -32,7 +32,7 @@ object FetchDependencies {
       .flatMap { resolution =>
         if (resolution.errors.nonEmpty)
           Future.failed(ResolutionException(resolution.errors))
-        if (resolution.conflicts.nonEmpty)
+        else if (resolution.conflicts.nonEmpty)
           Future.failed(DependencyConflictException(resolution.conflicts))
         else
           Future.successful(resolution.artifacts())
