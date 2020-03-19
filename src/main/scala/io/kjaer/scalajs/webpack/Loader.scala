@@ -1,7 +1,7 @@
 package io.kjaer.scalajs.webpack
 
 import coursier.Dependency
-import io.kjaer.scalajs.webpack.FetchDependencies.{
+import io.kjaer.scalajs.webpack.DependencyFetch.{
   DependencyConflictException,
   FetchException,
   ResolutionException
@@ -42,7 +42,7 @@ object Loader {
       val cacheDir = path.join(path.resolve("."), ".cache")
       // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
-      downloadDependencies(Dependencies.default.toSeq, cacheDir).onComplete {
+      DependencyFetch.fetchDependencies(Dependencies.default.toSeq, cacheDir).onComplete {
         case Success(map) =>
           logger.info(map.toString)
           returnOutput(output(self, source))
@@ -70,25 +70,4 @@ object Loader {
     val replaced = source.replaceAll("""\[name\]""", options.name)
     s"export default ${js.JSON.stringify(replaced)};"
   }
-
-  def downloadDependencies(
-      dependencies: Seq[Dependency],
-      cacheDirectory: String
-  )(implicit logger: WebpackLogger): Future[Map[Dependency, String]] =
-    FetchDependencies
-      .fetch(dependencies)
-      .map(_.map {
-        case (dependency, fileContents) =>
-          val directory = path
-            .join(cacheDirectory, dependency.module.organization.value, dependency.version, "jars")
-
-          fs.ensureDirSync(directory)
-
-          val fileName = s"${dependency.module.name.value}.jar"
-          val filePath = path.join(directory, fileName)
-          fs.writeFileSync(filePath, fileContents, "utf-8")
-
-          (dependency -> filePath)
-      })
-
 }
