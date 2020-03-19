@@ -9,7 +9,8 @@ import io.kjaer.scalajs.webpack.FetchDependencies.{
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import typings.node.{fsMod => fs}
+
+import typings.fsExtra.{mod => fs}
 import typings.node.pathMod.{^ => path}
 import typings.loaderUtils.mod.getOptions
 import typings.node.fsMod.MakeDirectoryOptions
@@ -81,8 +82,7 @@ object Loader {
           val directory = path
             .join(cacheDirectory, dependency.module.organization.value, dependency.version, "jars")
 
-          // TODO Support older versions of Node? The recursive option is only supported since 10.12.0
-          fs.mkdirSync(directory, MakeDirectoryOptions(recursive = true))
+          fs.ensureDirSync(directory)
 
           val fileName = s"${dependency.module.name.value}.jar"
           val filePath = path.join(directory, fileName)
