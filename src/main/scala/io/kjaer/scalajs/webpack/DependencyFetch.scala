@@ -59,7 +59,13 @@ object DependencyFetch {
             "jars",
             s"${dependency.module.name.value}.jar"
           )
-          Task(_ => download(dependency, artifact, file)(new WebpackCacheLogger(logger)))
+          Task { _ =>
+            implicit val cacheLogger: WebpackCacheLogger = new WebpackCacheLogger(logger)
+            val fetchedFile =
+              if (fs.existsSync(file)) fetchLocal(artifact, file)
+              else download(artifact, file)
+            fetchedFile.map(either => either.flatMap(name => Right((dependency, name))))
+          }
       })
       .future()
       .flatMap { artifacts =>
@@ -69,9 +75,14 @@ object DependencyFetch {
       }
   }
 
-  private def download(dependency: Dependency, artifact: Artifact, file: String)(
+  private def fetchLocal(artifact: Artifact, file: String)(
       implicit logger: WebpackCacheLogger
-  ): Future[Either[String, (Dependency, String)]] =
+  ): Future[Either[String, String]] =
+    Future(logger.foundLocally(artifact.url)).map(_ => Right(file))
+
+  private def download(artifact: Artifact, file: String)(
+      implicit logger: WebpackCacheLogger
+  ): Future[Either[String, String]] =
     Future(logger.downloadingArtifact(artifact.url))
       .flatMap { _ =>
         fs.ensureDirSync(path.dirname(file))
@@ -84,7 +95,7 @@ object DependencyFetch {
       }
       .map { file =>
         logger.downloadedArtifact(artifact.url, success = true)
-        Right((dependency, file))
+        Right(file)
       }
       .recover {
         case e: Exception =>
