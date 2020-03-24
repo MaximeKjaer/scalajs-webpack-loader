@@ -1,8 +1,7 @@
 package io.kjaer.scalajs.webpack
 
-import coursier.{Dependency, MavenRepository, Module, Resolve}
+import coursier.{Dependency, MavenRepository, Module, Resolve, Resolution}
 import coursier.util.{Artifact, Gather, Task}
-
 import typings.fsExtra.{mod => fs}
 import typings.node.nodeStrings
 import typings.node.pathMod.{^ => path}
@@ -30,7 +29,9 @@ object DependencyFetch {
       .flatMap(fetchArtifacts(_, cacheDirectory))
       .map(_.toMap)
 
-  private def resolve(dependencies: Seq[Dependency]): Future[Seq[(Dependency, Artifact)]] =
+  private def resolve(
+      dependencies: Seq[Dependency]
+  ): Future[Resolution] =
     Resolve()
       .withRepositories(Seq(MavenRepository("https://repo1.maven.org/maven2")))
       .withDependencies(dependencies)
@@ -41,16 +42,16 @@ object DependencyFetch {
         else if (resolution.conflicts.nonEmpty)
           Future.failed(DependencyConflictException(resolution.conflicts))
         else
-          Future.successful(dependencies.zip(resolution.artifacts()))
+          Future.successful(resolution)
       }
 
   private def fetchArtifacts(
-      resolutions: Seq[(Dependency, Artifact)],
+      resolutions: Resolution,
       cacheDirectory: String
   )(implicit logger: WebpackLogger): Future[Seq[(Dependency, String)]] = {
     Gather[Task]
-      .gather(resolutions.map {
-        case (dependency, artifact) =>
+      .gather(resolutions.dependencyArtifacts().map {
+        case (dependency, _, artifact) =>
           val file = path.join(
             cacheDirectory,
             dependency.module.organization.value,
@@ -58,19 +59,19 @@ object DependencyFetch {
             "jars",
             s"${dependency.module.name.value}.jar"
           )
-          download(artifact, file)(new WebpackCacheLogger(logger)) // TODO implicit
+          Task(_ => download(dependency, artifact, file)(new WebpackCacheLogger(logger)))
       })
       .future()
       .flatMap { artifacts =>
-        val (errors, files) = artifacts.partitionMap(identity)
+        val (errors, dependencyFiles) = artifacts.partitionMap(identity)
         if (errors.nonEmpty) Future.failed(FetchException(errors))
-        else Future.successful(resolutions.map(_._1).zip(files)) // TODO don't unzip/rezip
+        else Future.successful(dependencyFiles)
       }
   }
 
-  private def download(artifact: Artifact, file: String)(
+  private def download(dependency: Dependency, artifact: Artifact, file: String)(
       implicit logger: WebpackCacheLogger
-  ): Task[Either[String, String]] = Task { _ =>
+  ): Future[Either[String, (Dependency, String)]] =
     Future(logger.downloadingArtifact(artifact.url))
       .flatMap { _ =>
         fs.ensureDirSync(path.dirname(file))
@@ -83,7 +84,7 @@ object DependencyFetch {
       }
       .map { file =>
         logger.downloadedArtifact(artifact.url, success = true)
-        Right(file)
+        Right((dependency, file))
       }
       .recover {
         case e: Exception =>
@@ -91,5 +92,4 @@ object DependencyFetch {
           val msg = e.toString + Option(e.getMessage).fold("")(" (" + _ + ")")
           Left(msg)
       }
-  }
 }
