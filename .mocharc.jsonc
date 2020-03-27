@@ -2,5 +2,5 @@
   "require": "ts-node/register",
   "spec": "test/integration/*.test.ts",
   "watch-files": ["test/**", "target/scala-*/*opt.js"],
-  "slow": "500" // integration tests take a little longer than unit tests
+  "slow": "10000" // integration tests take a little longer than unit tests
 }
