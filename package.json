@@ -21,7 +21,10 @@
     "fix": "npm-run-all fix:**",
     "fix:format:scala": "scalafmt $npm_package_config_scalafmt_files || sbt scalafmtAll",
     "fix:format:js": "prettier --write $npm_package_config_prettier_files",
-    "clean": "sbt clean"
+    "clean": "npm-run-all --parallel clean:*",
+    "clean:scalajs": "sbt clean",
+    "clean:bundle": "rimraf dist",
+    "clean:fixtures": "rimraf test/integration/fixtures/**/{dist,.cache,test-target}"
   },
   "repository": {
     "type": "git",
