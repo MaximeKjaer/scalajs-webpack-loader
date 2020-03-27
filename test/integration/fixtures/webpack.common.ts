@@ -13,7 +13,7 @@ export const commonConfig: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.txt$/,
+        test: /\.sjsproject$/,
         use: {
           loader,
           options: {

@@ -1,6 +1,6 @@
 package io.kjaer.scalajs.webpack
 
-import coursier.{Dependency, MavenRepository, Module, Resolve, Resolution}
+import coursier.{Dependency, MavenRepository, Resolution, Resolve}
 import coursier.util.{Artifact, Gather, Task}
 import typings.fsExtra.{mod => fs}
 import typings.node.nodeStrings
@@ -12,7 +12,7 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 
 object DependencyFetch {
-  case class ResolutionException(errors: Seq[((Module, String), Seq[String])])
+  case class ResolutionException(errors: Seq[(DependencyName, Seq[String])])
       extends Exception("Could not get metadata about some dependencies")
 
   case class DependencyConflictException(conflicts: Set[Dependency])
@@ -22,16 +22,15 @@ object DependencyFetch {
       extends Exception("An error happened while fetching artifacts")
 
   def fetchDependencies(
-      dependencies: Seq[Dependency],
+      dependencies: Dependencies,
       cacheDirectory: String
-  )(implicit logger: WebpackLogger): Future[Map[Dependency, String]] =
-    resolve(dependencies)
-      .flatMap(fetchArtifacts(_, cacheDirectory))
-      .map(_.toMap)
+  )(implicit logger: WebpackLogger): Future[DependencyFiles] =
+    for {
+      resolution <- resolve(dependencies.toSeq)
+      files <- fetchArtifacts(resolution, cacheDirectory)
+    } yield DependencyFiles.fromResolution(resolution, dependencies, files)
 
-  private def resolve(
-      dependencies: Seq[Dependency]
-  ): Future[Resolution] =
+  private def resolve(dependencies: Seq[Dependency]): Future[Resolution] =
     Resolve()
       .withRepositories(Seq(MavenRepository("https://repo1.maven.org/maven2")))
       .withDependencies(dependencies)
@@ -48,7 +47,7 @@ object DependencyFetch {
   private def fetchArtifacts(
       resolutions: Resolution,
       cacheDirectory: String
-  )(implicit logger: WebpackLogger): Future[Seq[(Dependency, String)]] = {
+  )(implicit logger: WebpackLogger): Future[Map[DependencyName, String]] = {
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
         case (dependency, _, artifact) =>
@@ -64,14 +63,15 @@ object DependencyFetch {
             val fetchedFile =
               if (fs.existsSync(file)) fetchLocal(artifact, file)
               else download(artifact, file)
-            fetchedFile.map(either => either.flatMap(name => Right((dependency, name))))
+            fetchedFile
+              .map(either => either.flatMap(name => Right((dependencyName(dependency), name))))
           }
       })
       .future()
       .flatMap { artifacts =>
         val (errors, dependencyFiles) = artifacts.partitionMap(identity)
         if (errors.nonEmpty) Future.failed(FetchException(errors))
-        else Future.successful(dependencyFiles)
+        else Future.successful(dependencyFiles.toMap)
       }
   }
 

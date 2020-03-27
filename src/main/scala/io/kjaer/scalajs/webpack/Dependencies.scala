@@ -3,7 +3,7 @@ package io.kjaer.scalajs.webpack
 import coursier._
 
 case class Dependencies(scalaVersion: String, scalaJSVersion: String) {
-  private val scalaMinorVersion = scalaVersion.take(scalaVersion.lastIndexOf("."))
+  val scalaMinorVersion = scalaVersion.take(scalaVersion.lastIndexOf("."))
 
   val scalaCompiler =
     Dependency(Module(org"org.scala-lang", name"scala-compiler"), scalaVersion)
