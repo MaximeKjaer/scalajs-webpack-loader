@@ -28,3 +28,5 @@ project/plugins/project/
 # NPM
 node_modules
 
+# Webpack plugin output
+test-target

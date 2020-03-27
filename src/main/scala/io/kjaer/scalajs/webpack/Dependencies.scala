@@ -17,7 +17,12 @@ case class Dependencies(scalaVersion: String, scalaJSVersion: String) {
     scalaJSVersion
   )
 
-  def toSeq: Seq[Dependency] = Seq(scalaCompiler, scalaJSCompiler, scalaJSLib)
+  val scalaJSCLI = Dependency(
+    Module(org"org.scala-js", ModuleName(s"scalajs-cli_$scalaMinorVersion")),
+    scalaJSVersion
+  )
+
+  def toSeq: Seq[Dependency] = Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI)
 }
 
 object Dependencies {

@@ -5,3 +5,4 @@ dist
 .bloop
 .metals
 *.sbt
+test-target

@@ -10,7 +10,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
-import typings.node.{nodeStrings, childProcessMod => childProcess}
+import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
 import typings.loaderUtils.mod.getOptions
 import typings.webpack.mod.loader.LoaderContext
 
@@ -26,7 +26,7 @@ object Loader {
       val callback = self.async().getOrElse {
         throw new Error("Async loaders are not supported")
       }
-      def returnOutput(output: String): Unit = callback(js.undefined, output, js.undefined)
+      def returnOutput(output: Buffer): Unit = callback(js.undefined, output, js.undefined)
       def returnError(err: Throwable): Unit = callback(
         typings.std.Error(err.getMessage),
         js.undefined,
@@ -48,34 +48,29 @@ object Loader {
       val dependencies = Dependencies.default
 
       val currentDir = path.resolve(".")
+      // TODO user-configurable target directory
       val targetDir =
-        path.join(currentDir, "target", s"scala-${dependencies.scalaMinorVersion}", "classes")
+        path.join(currentDir, "test-target", s"scala-${dependencies.scalaMinorVersion}")
+      val classesDir = path.join(targetDir, "classes")
+      val targetFile = path.join(targetDir, "bundle.js")
       val cacheDir = path.join(currentDir, ".cache")
       // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
-      fs.ensureDirSync(targetDir)
+      fs.ensureDirSync(classesDir)
 
-      DependencyFetch
-        .fetchDependencies(dependencies, cacheDir)
-        .flatMap { dependencyFiles =>
-          execCommand(
-            "java",
-            "-cp",
-            dependencyFiles.scalaCompiler.values.mkString(":"),
-            "scala.tools.nsc.Main",
-            "-Xplugin:" + dependencyFiles.scalaJSCompiler,
-            "-d",
-            targetDir,
-            "-classpath",
-            dependencyFiles.scalaJSLibrary.values.mkString(":"),
-            scalaFiles.mkString(" ")
-          )
-        }
+      val downloadAndCompile = for {
+        dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
+        _ = logger.log("Compiling")
+        compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
+        _ = logger.log("Linking")
+        linkingOutput <- link(classesDir, targetFile, dependencyFiles)
+        outputFile <- fs.promises.readFile(targetFile).toFuture
+      } yield outputFile
+
+      downloadAndCompile
         .onComplete {
           case Success(output) =>
-            println("command output!")
-            println(output)
-            returnOutput(jsOutput(self, source))
+            returnOutput(output)
 
           case Failure(err) =>
             err match {
@@ -90,6 +85,7 @@ object Loader {
                 logger.error(errors.mkString("\n"))
               case _ =>
                 logger.error("An unknown error occurred")
+                logger.error(err.getMessage)
             }
             returnError(err)
         }
@@ -101,32 +97,75 @@ object Loader {
     s"export default ${js.JSON.stringify(replaced)};"
   }
 
+  private def compile(
+      scalaFiles: Iterable[String],
+      classesDir: String,
+      dependencyFiles: DependencyFiles
+  ): Future[String] = {
+    execCommand(
+      "java",
+      "-cp",
+      dependencyFiles.scalaCompiler.classpath,
+      "scala.tools.nsc.Main",
+      "-Xplugin:" + dependencyFiles.scalaJSCompiler.file,
+      "-d",
+      classesDir,
+      "-classpath",
+      dependencyFiles.scalaJSLibrary.classpath,
+      scalaFiles.mkString(" ")
+    )
+  }
+
+  private def link(
+      classesDir: String,
+      targetFile: String,
+      dependencyFiles: DependencyFiles
+  ): Future[String] = {
+    execCommand(
+      "java",
+      "-cp",
+      dependencyFiles.scalaJSCLI.classpath,
+      "org.scalajs.cli.Scalajsld",
+      "--stdlib",
+      dependencyFiles.scalaJSLibrary.file,
+      "--moduleKind",
+      "CommonJSModule",
+      "--output",
+      targetFile,
+      classesDir
+    )
+  }
+
   private def execCommand(command: String, options: String*): Future[String] = {
     val promise = Promise[String]()
-    val output = new StringBuilder()
+    val stdout = new StringBuilder()
+    val stderr = new StringBuilder()
     val process = childProcess.spawn(command, js.Array(options: _*))
 
     process
       .on_close(
         nodeStrings.close,
         (code, signals) => {
-          println("CLOSE")
-          if (code == 0) promise.success(output.mkString)
-          else promise.failure(js.JavaScriptException(s"non-zero code $code because of $signals"))
+          if (code == 0) promise.success(stdout.mkString)
+          else
+            promise.failure(
+              js.JavaScriptException(
+                stderr.mkString + s"\nExited with code $code (because of $signals)"
+              )
+            )
         }
       )
 
     process.stdout_ChildProcessWithoutNullStreams
       .on_data(nodeStrings.data, (buffer) => {
-        println("DATA")
         val data = buffer.asInstanceOf[typings.node.Buffer].toString()
-        output.appendAll(data)
+        stdout.appendAll(data)
       })
 
     process.stderr_ChildProcessWithoutNullStreams
       .on_data(nodeStrings.data, (buffer) => {
         val data = buffer.asInstanceOf[typings.node.Buffer].toString()
-        println(s"ERR DATA: $data")
+        stderr.appendAll(data)
       })
 
     promise.future
