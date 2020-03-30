@@ -14,6 +14,14 @@ Import Scala.js code in a Webpack project, without having to set up a Scala buil
 
 </div>
 
+## Installing
+
+scalajs-webpack-loader currently requires at least Node v10.0. Check your version using:
+
+```console
+$ node -v
+```
+
 ## Development
 
 To develop the code in this repo, you will need to have `sbt` and `npm` installed on your system. Run `npm install` after cloning the repo to get all JS dependencies of this project.

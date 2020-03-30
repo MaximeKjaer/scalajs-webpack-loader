@@ -6,6 +6,9 @@
     "prettier_files": "**/*.{json,ts,tsx,js,jsx}",
     "scalafmt_files": "src/main/scala project/*.sbt ./*.sbt"
   },
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "main": "dist/bundle.js",
   "scripts": {
     "build": "npm-run-all build:scalajs build:bundle",
