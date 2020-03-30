@@ -1,5 +1,5 @@
 language: scala
-node_js: node
+node_js: 11
 cache:
   directories:
     - $HOME/.cache/coursier
