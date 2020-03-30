@@ -1,5 +1,4 @@
 language: scala
-node_js: 11
 cache:
   directories:
     - $HOME/.cache/coursier
@@ -9,6 +8,8 @@ before_cache:
   - rm -fv $HOME/.ivy2/.sbt.ivy.lock
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
+before_install:
+  - nvm install node
 before_script:
   - node -v
   - export NODE_ENV=production
