@@ -16,6 +16,12 @@ Import Scala.js code in a Webpack project, without having to set up a Scala buil
 
 ## Installing
 
+Install scalajs-webpack-loader as a dev-dependency of your NPM package by running:
+
+```console
+$ npm install --save-dev scalajs-webpack-loader 
+```
+
 scalajs-webpack-loader currently requires at least Node v10.0. Check your version using:
 
 ```console
