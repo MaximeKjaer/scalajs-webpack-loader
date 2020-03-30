@@ -15,10 +15,7 @@ export const commonConfig: webpack.Configuration = {
       {
         test: /\.sjsproject$/,
         use: {
-          loader,
-          options: {
-            name: "Alice"
-          }
+          loader
         }
       }
     ]

@@ -12,6 +12,7 @@ import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
 import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
 import typings.loaderUtils.mod.getOptions
+import typings.schemaUtils.{mod => validateOptions}
 import typings.webpack.mod.loader.LoaderContext
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,6 +21,8 @@ import scala.util.Failure
 import scala.util.Success
 
 object Loader {
+  val name = "webpack-scalajs-loader"
+
   @JSExportTopLevel("default")
   val loader: js.ThisFunction1[LoaderContext, String, Unit] =
     (self: LoaderContext, source: String) => {
@@ -33,7 +36,7 @@ object Loader {
         js.undefined
       )
 
-      val options = getOptions(self).asInstanceOf[Options]
+      val options = Options.get(self, name).get // TODO better error handling
 
       val scalaFolder = self.resourcePath.split(path.sep).init.mkString(path.sep)
       val scalaFiles = fs
@@ -42,7 +45,7 @@ object Loader {
         .map(file => path.join(scalaFolder, file))
 
       implicit val logger: WebpackLogger = getLogger(
-        WebpackLoggerOptions(name = "scalajs-loader", level = "debug")
+        WebpackLoggerOptions(name = name, level = "debug")
       )
 
       val dependencies = Dependencies.default
@@ -90,12 +93,6 @@ object Loader {
             returnError(err)
         }
     }
-
-  def jsOutput(self: LoaderContext, source: String): String = {
-    val options = getOptions(self).asInstanceOf[Options]
-    val replaced = source.replaceAll("""\[name\]""", options.name)
-    s"export default ${js.JSON.stringify(replaced)};"
-  }
 
   private def compile(
       scalaFiles: Iterable[String],
