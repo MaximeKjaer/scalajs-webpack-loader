@@ -6,3 +6,4 @@ dist
 .metals
 *.sbt
 test-target
+test/integration/snapshots
