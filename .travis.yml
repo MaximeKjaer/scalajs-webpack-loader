@@ -10,7 +10,8 @@ before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 before_script:
-  - NODE_ENV=production
+  - node -v
+  - export NODE_ENV=production
   - npm install
 script:
   - npm run build
