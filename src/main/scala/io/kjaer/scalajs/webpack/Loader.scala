@@ -143,10 +143,10 @@ object Loader {
     val process = childProcess.spawn(command, js.Array(options: _*))
 
     process
-      .on_close(
-        nodeStrings.close,
+      .on_exit(
+        nodeStrings.exit,
         (code, signals) => {
-          if (code == 0) promise.success(stdout.mkString)
+          if (code != null && code == 0d) promise.success(stdout.mkString)
           else
             promise.failure(
               js.JavaScriptException(
