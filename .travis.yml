@@ -11,9 +11,8 @@ before_cache:
 before_install:
   - nvm install node
 before_script:
-  - node -v
-  - export NODE_ENV=production
   - npm install
+  - export NODE_ENV=production
 script:
   - npm run build
   - npm run test
