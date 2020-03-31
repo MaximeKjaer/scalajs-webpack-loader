@@ -46,6 +46,7 @@ All development commands can be run with NPM. Note that some of these commands d
 | `test:format:scala`         | Test formatting of Scala files with scalafmt                          |
 | `test:format:js`            | Test formatting of JS and config files                                |
 | `test:integration`          | Run integration tests                                                 |
+| `test:unit`                 | Run Scala.js unit tests                                               |
 | `fix`                       | Run all automatic fixes                                               |
 | `fix:format:scala`          | Run scalafmt fixes for all Scala files                                |
 | `fix:format:js`             | Run Prettier fixes for all JS and config files                        |
