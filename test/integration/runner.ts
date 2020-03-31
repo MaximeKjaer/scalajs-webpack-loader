@@ -24,7 +24,7 @@ export async function run(
   //     Mocha tests, "target" is already used by the sbt build. Artifacts from the fixtures should
   //     not be mixed in with the project's own build artifacts.
   const loaderOptions = getLoaderOptions(config);
-  loaderOptions.verbosity = verbosity;
+  if (verbosity) loaderOptions.verbosity = verbosity;
   loaderOptions.targetDirectory = "test-target";
 
   const compiler = webpack(config);
