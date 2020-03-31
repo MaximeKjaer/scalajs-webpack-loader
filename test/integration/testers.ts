@@ -35,7 +35,5 @@ export async function testError(
   fixture: string,
   expectedError: string
 ): Promise<void> {
-  return expect(run("wrong-options")).to.eventually.rejectedWith(
-    "ValidationError"
-  );
+  return expect(run(fixture)).to.eventually.rejectedWith(expectedError);
 }
