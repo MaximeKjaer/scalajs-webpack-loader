@@ -1,4 +1,4 @@
-import {testError, testSnapshot} from "./testers";
+import { testError, testSnapshot } from "./testers";
 
 describe("loader", function() {
   this.timeout(20000);
