@@ -13,6 +13,7 @@ import scala.util.Try
 @js.native
 trait Options extends js.Object {
   val mainMethod: js.UndefOr[String]
+  val moduleKind: String
 }
 
 object Options {
@@ -20,9 +21,15 @@ object Options {
     js.Dynamic
       .literal(
         `type` = js.Array(JSONSchema7TypeName.`null`, JSONSchema7TypeName.`object`),
+        $schema = "http://json-schema.org/draft-07/schema#",
+        description = s"Schema for ${Loader.name} options",
         additionalProperties = false,
         properties = js.Dynamic.literal(
-          mainMethod = js.Dynamic.literal(`type` = JSONSchema7TypeName.string)
+          mainMethod = js.Dynamic.literal(`type` = JSONSchema7TypeName.string),
+          moduleKind = js.Dynamic.literal(
+            `type` = JSONSchema7TypeName.string,
+            enum = js.Array("CommonJSModule", "ESModule", "NoModule")
+          )
         )
       )
       .asInstanceOf[JSONSchema7]
@@ -30,7 +37,8 @@ object Options {
   def defaults: Options =
     js.Dynamic
       .literal(
-        mainMethod = js.undefined
+        mainMethod = js.undefined,
+        moduleKind = "CommonJSModule"
       )
       .asInstanceOf[Options]
 

@@ -118,7 +118,7 @@ object Loader {
     val javaOptions = Seq("-cp", dependencyFiles.scalaJSCLI.classpath, "org.scalajs.cli.Scalajsld")
 
     val stdlib = Seq("--stdlib", dependencyFiles.scalaJSLibrary.file)
-    val moduleKind = Seq("--moduleKind", "CommonJSModule")
+    val moduleKind = Seq("--moduleKind", options.moduleKind)
     val output = Seq("--output", targetFile)
     val mainMethod = options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
     val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
