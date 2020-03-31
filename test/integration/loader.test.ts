@@ -14,4 +14,10 @@ describe("loader", function() {
       await testError("wrong-options", "ValidationError");
     });
   });
+
+  describe("scala-entry", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("scala-entry");
+    });
+  });
 });

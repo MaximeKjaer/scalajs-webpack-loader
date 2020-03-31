@@ -11,8 +11,6 @@ import scala.scalajs.js.annotation._
 import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
 import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
-import typings.loaderUtils.mod.getOptions
-import typings.schemaUtils.{mod => validateOptions}
 import typings.webpack.mod.loader.LoaderContext
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -66,7 +64,7 @@ object Loader {
         _ = logger.log("Compiling")
         compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
         _ = logger.log("Linking")
-        linkingOutput <- link(classesDir, targetFile, dependencyFiles)
+        linkingOutput <- link(classesDir, targetFile, dependencyFiles, options)
         outputFile <- fs.promises.readFile(targetFile).toFuture
       } yield outputFile
 
@@ -99,41 +97,34 @@ object Loader {
       classesDir: String,
       dependencyFiles: DependencyFiles
   ): Future[String] = {
-    execCommand(
-      "java",
-      "-cp",
-      dependencyFiles.scalaCompiler.classpath,
-      "scala.tools.nsc.Main",
-      "-Xplugin:" + dependencyFiles.scalaJSCompiler.file,
-      "-d",
-      classesDir,
-      "-classpath",
-      dependencyFiles.scalaJSLibrary.classpath,
-      scalaFiles.mkString(" ")
-    )
+    val javaOptions = Seq("-cp", dependencyFiles.scalaCompiler.classpath, "scala.tools.nsc.Main")
+
+    val plugin = Seq("-Xplugin:" + dependencyFiles.scalaJSCompiler.file)
+    val destination = Seq("-d", classesDir)
+    val classpath = Seq("-classpath", dependencyFiles.scalaJSLibrary.classpath)
+    val scalaOptions = plugin ++ destination ++ classpath
+
+    execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles)
   }
 
   private def link(
       classesDir: String,
       targetFile: String,
-      dependencyFiles: DependencyFiles
+      dependencyFiles: DependencyFiles,
+      options: Options
   ): Future[String] = {
-    execCommand(
-      "java",
-      "-cp",
-      dependencyFiles.scalaJSCLI.classpath,
-      "org.scalajs.cli.Scalajsld",
-      "--stdlib",
-      dependencyFiles.scalaJSLibrary.file,
-      "--moduleKind",
-      "CommonJSModule",
-      "--output",
-      targetFile,
-      classesDir
-    )
+    val javaOptions = Seq("-cp", dependencyFiles.scalaJSCLI.classpath, "org.scalajs.cli.Scalajsld")
+
+    val stdlib = Seq("--stdlib", dependencyFiles.scalaJSLibrary.file)
+    val moduleKind = Seq("--moduleKind", "CommonJSModule")
+    val output = Seq("--output", targetFile)
+    val mainMethod = options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
+    val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
+
+    execCommand("java", javaOptions ++ scalajsldOptions :+ classesDir)
   }
 
-  private def execCommand(command: String, options: String*): Future[String] = {
+  private def execCommand(command: String, options: Seq[String]): Future[String] = {
     val promise = Promise[String]()
     val stdout = new StringBuilder()
     val stderr = new StringBuilder()

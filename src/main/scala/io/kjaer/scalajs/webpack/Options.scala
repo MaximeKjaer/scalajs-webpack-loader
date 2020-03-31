@@ -27,11 +27,18 @@ object Options {
       )
       .asInstanceOf[JSONSchema7]
 
+  def defaults: Options =
+    js.Dynamic
+      .literal(
+        mainMethod = js.undefined
+      )
+      .asInstanceOf[Options]
+
   def get(context: LoaderContext, name: String): Try[Options] = {
     val options = getOptions(context)
     Try {
       validateOptions(schema, options, ValidationErrorConfiguration(name = name))
-      options.asInstanceOf[Options]
+      js.Object.assign(defaults, options).asInstanceOf[Options]
     }
   }
 }
