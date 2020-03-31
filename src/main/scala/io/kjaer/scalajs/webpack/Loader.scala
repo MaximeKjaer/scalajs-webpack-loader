@@ -51,9 +51,8 @@ object Loader {
       val dependencies = Dependencies.default
 
       val currentDir = path.resolve(".")
-      // TODO user-configurable target directory
       val targetDir =
-        path.join(currentDir, "test-target", s"scala-${dependencies.scalaMinorVersion}")
+        path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaMinorVersion}")
       val classesDir = path.join(targetDir, "classes")
       val targetFile = path.join(targetDir, "bundle.js")
       val cacheDir = path.join(currentDir, ".cache")

@@ -19,8 +19,13 @@ export async function run(
   //
   //   - Verbosity is what we set the test to be. This allows us to debug a single test, or to
   //     manage verbosity in all tests at once.
+  //   - For most scalajs-webpack-loader projects, "target" is a good default for the target
+  //     directory. However, for this project itself, when building fixtures from the root folder in
+  //     Mocha tests, "target" is already used by the sbt build. Artifacts from the fixtures should
+  //     not be mixed in with the project's own build artifacts.
   const loaderOptions = getLoaderOptions(config);
   loaderOptions.verbosity = verbosity;
+  loaderOptions.targetDirectory = "test-target";
 
   const compiler = webpack(config);
   const fs = new MemoryFileSystem();

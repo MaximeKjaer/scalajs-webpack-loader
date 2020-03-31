@@ -15,6 +15,7 @@ trait Options extends js.Object {
   val mainMethod: js.UndefOr[String]
   val moduleKind: String
   val verbosity: String
+  val targetDirectory: String
 }
 
 object Options {
@@ -34,7 +35,8 @@ object Options {
           verbosity = js.Dynamic.literal(
             `type` = JSONSchema7TypeName.string,
             enum = js.Array(WebpackLoggerOptions.levels: _*)
-          )
+          ),
+          targetDirectory = js.Dynamic.literal(`type` = JSONSchema7TypeName.string)
         )
       )
       .asInstanceOf[JSONSchema7]
@@ -44,7 +46,8 @@ object Options {
       .literal(
         mainMethod = js.undefined,
         moduleKind = "CommonJSModule",
-        verbosity = "warn"
+        verbosity = "warn",
+        targetDirectory = "target"
       )
       .asInstanceOf[Options]
 

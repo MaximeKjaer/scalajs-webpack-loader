@@ -28,7 +28,8 @@ project/plugins/project/
 # NPM
 node_modules
 
-# Webpack plugin output
+# Integration test artifacts
 test-target
+
 # Temporary snapshot files
 test/integration/snapshots/*.expected.js
