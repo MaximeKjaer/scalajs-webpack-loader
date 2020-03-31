@@ -42,6 +42,8 @@ object Loader {
         .filter(_.endsWith(".scala"))
         .map(file => path.join(scalaFolder, file))
 
+      scalaFiles.foreach(file => self.addDependency(file))
+
       implicit val logger: WebpackLogger = getLogger(
         WebpackLoggerOptions(name = name, level = "debug")
       )
