@@ -31,6 +31,8 @@ trait WebpackLoggerOptions extends js.Object {
 }
 
 object WebpackLoggerOptions {
+  val levels = Seq("silent", "error", "warn", "info", "debug", "trace")
+
   def apply(
       name: String,
       level: js.UndefOr[String] = js.undefined

@@ -45,7 +45,7 @@ object Loader {
       scalaFiles.foreach(file => self.addDependency(file))
 
       implicit val logger: WebpackLogger = getLogger(
-        WebpackLoggerOptions(name = name, level = "debug")
+        WebpackLoggerOptions(name = name, level = options.verbosity)
       )
 
       val dependencies = Dependencies.default

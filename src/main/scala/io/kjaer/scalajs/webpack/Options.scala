@@ -14,6 +14,7 @@ import scala.util.Try
 trait Options extends js.Object {
   val mainMethod: js.UndefOr[String]
   val moduleKind: String
+  val verbosity: String
 }
 
 object Options {
@@ -29,6 +30,10 @@ object Options {
           moduleKind = js.Dynamic.literal(
             `type` = JSONSchema7TypeName.string,
             enum = js.Array("CommonJSModule", "ESModule", "NoModule")
+          ),
+          verbosity = js.Dynamic.literal(
+            `type` = JSONSchema7TypeName.string,
+            enum = js.Array(WebpackLoggerOptions.levels: _*)
           )
         )
       )
@@ -38,7 +43,8 @@ object Options {
     js.Dynamic
       .literal(
         mainMethod = js.undefined,
-        moduleKind = "CommonJSModule"
+        moduleKind = "CommonJSModule",
+        verbosity = "warn"
       )
       .asInstanceOf[Options]
 
