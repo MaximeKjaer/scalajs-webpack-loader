@@ -10,6 +10,12 @@
     "node": ">=10.0.0"
   },
   "main": "dist/bundle.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "build": "npm-run-all build:scalajs build:bundle",
     "build:scalajs": "per-env",
@@ -28,14 +34,20 @@
     "clean": "npm-run-all --parallel clean:*",
     "clean:scalajs": "sbt clean",
     "clean:bundle": "rimraf dist",
-    "clean:fixtures": "rimraf test/integration/fixtures/**/{dist,.cache,target}"
+    "clean:fixtures": "rimraf test/integration/fixtures/**/{dist,.cache,target}",
+    "preversion": "npm-run-all clean build test",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MaximeKjaer/scalajs-webpack.git"
   },
-  "keywords": [],
-  "author": "Maxime Kjaer <maxime.kjaer@gmail.com",
+  "keywords": [
+    "scalajs",
+    "webpack",
+    "loader"
+  ],
+  "author": "Maxime Kjaer <maxime.kjaer@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/MaximeKjaer/scalajs-webpack/issues"

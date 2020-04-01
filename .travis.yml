@@ -1,9 +1,10 @@
 language: scala
 cache:
   directories:
-    - $HOME/.cache/coursier
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt
+    - node_modules
+    - "$HOME/.cache/coursier"
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.sbt"
 before_cache:
   - rm -fv $HOME/.ivy2/.sbt.ivy.lock
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
@@ -16,3 +17,13 @@ before_script:
 script:
   - npm run build
   - npm run test
+deploy:
+  - provider: npm
+    skip_cleanup: true
+    email: maxime.kjaer@gmail.com
+    on:
+      tags: true
+      repo: MaximeKjaer/scalajs-webpack-loader
+      branch: master
+    api_key:
+      secure: XdDyoKlmGDbEBr/YZi9bdWrCYoEgLKpal4938FIMKTeYE1o9NfwoU1q9CEa10Q4lcWVw7JK8jvjYviysYWnQco3LdrsKKHXn+euDI+GKFJNH6jm2CwCyp3U1m4jb873v+lqOaPEP8UPISFdvfQxwzNl2uQgonrBOnRmitsf1/xM+2ROzqOquBidz1IX4V8WAnXocwClfjRH8iuV8Y7LyhALb2Uhq3iu1X9RTf6N/hKDsid0B9kefG6Rdx13hW9U6wsZ5gKvwe1axte+p1vQM2f/OqIQ1RkPC2aR/wvvNfTRE0wnG5d/MOZwCPLnLtWZVg7q7GXPnHFIiLSHE+KVI/jfZf4AACfu3J9C7mZEn2twRkH1DDql6CCSFocUxavkXFkFYvj4U0+Ttx+hIwjLM+mMgDbZUXJKTgq4Q07XG7eZepAYK97szEXXd+waNR/tMQnUEygKOJ8E0NzPSkghgi+wGT4ySXKYsYROjSf/dqZ/GTqlsOSOWHyIhAKMlzKiqc2e0wBqyvd35oyK3EM1i1PJ53p4a5gXSik/yS52VrSX5Htt2RCU+zR28PBeYfokJtL/T+lv3Dv42OhzfuhWYb5GTnuDERKwKyYIx3lpl4EWpOcQhx5FoW32v4CDXkXCE4XUwr9hUPdQH08ZNca36M9+DAQem/cfGMIc8mjcrGSY=
