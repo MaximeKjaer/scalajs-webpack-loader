@@ -10,7 +10,6 @@ import typings.schemaUtils.{mod => validateOptions}
 
 import scala.util.Try
 
-@js.native
 trait Options extends js.Object {
   val mainMethod: js.UndefOr[String]
   val moduleKind: String
@@ -41,15 +40,12 @@ object Options {
       )
       .asInstanceOf[JSONSchema7]
 
-  def defaults: Options =
-    js.Dynamic
-      .literal(
-        mainMethod = js.undefined,
-        moduleKind = "CommonJSModule",
-        verbosity = "warn",
-        targetDirectory = "target"
-      )
-      .asInstanceOf[Options]
+  def defaults: Options = new Options {
+    override val mainMethod = js.undefined
+    override val moduleKind = "CommonJSModule"
+    override val verbosity = "warn"
+    override val targetDirectory = "target"
+  }
 
   def get(context: LoaderContext, name: String): Try[Options] = {
     val options = getOptions(context)

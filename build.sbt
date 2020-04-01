@@ -4,6 +4,8 @@ lazy val root = (project in file("."))
     name := "scalajs-webpack-loader",
     scalaVersion := "2.13.1",
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    // Opt-in to Scala-js 1.x semantics whereby `@ScalaJSDefined` annotations aren't necessary:
+    scalacOptions += "-P:scalajs:sjsDefinedByDefault",
     resolvers += Resolver.bintrayRepo("oyvindberg", "ScalablyTyped"),
     libraryDependencies ++= Seq(
       // Coursier:
