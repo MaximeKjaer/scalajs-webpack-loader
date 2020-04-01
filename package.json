@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "config": {
-    "prettier_files": "**/*.{json,ts,tsx,js,jsx,md}",
+    "prettier_files": "**/*.{json,ts,tsx,js,jsx,md,yml}",
     "scalafmt_files": "src/main/scala project/*.sbt ./*.sbt"
   },
   "engines": {
