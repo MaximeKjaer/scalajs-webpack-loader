@@ -9,7 +9,7 @@
     <img alt="Scala.js logo" src="http://www.scala-js.org/assets/img/scala-js-logo.svg" height="150"/>
 </a>
 
-Plugin and Loader for [webpack](http://webpack.js.org/) and [Scala.js](https://www.scala-js.org/).
+[Webpack](http://webpack.js.org/) loader for [Scala.js](https://www.scala-js.org/).
 Import Scala.js code in a Webpack project, without having to set up a Scala build.
 
 </div>
