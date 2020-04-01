@@ -118,3 +118,5 @@ All development commands can be run with NPM. Note that some of these commands d
 Remember to build before testing.
 
 Scalafmt commands try to run the CLI, and fall back to using SBT. If you run these commands frequently, you may want to install the [scalafmt CLI](https://scalameta.org/scalafmt/docs/installation.html#cli) for faster execution of these commands (`coursier install scalafmt` if you have [Coursier](https://get-coursier.io/) installed on your `PATH`).
+
+To release a new version, run `npm version patch`, `npm version minor` or `npm version major`. Travis CI will automatically deploy the new version once the CI build passes.
