@@ -19,7 +19,7 @@ import scala.util.Failure
 import scala.util.Success
 
 object Loader {
-  val name = "webpack-scalajs-loader"
+  val name = "scalajs-webpack-loader"
 
   @JSExportTopLevel("default")
   val loader: js.ThisFunction1[LoaderContext, String, Unit] =
