@@ -15,6 +15,8 @@ trait Options extends js.Object {
   val moduleKind: String
   val verbosity: String
   val targetDirectory: String
+  val scalaVersion: String
+  val scalaJSVersion: String
 }
 
 object Options {
@@ -35,7 +37,9 @@ object Options {
             `type` = JSONSchema7TypeName.string,
             enum = js.Array(WebpackLoggerOptions.levels: _*)
           ),
-          targetDirectory = js.Dynamic.literal(`type` = JSONSchema7TypeName.string)
+          targetDirectory = js.Dynamic.literal(`type` = JSONSchema7TypeName.string),
+          scalaVersion = js.Dynamic.literal(`type` = JSONSchema7TypeName.string),
+          scalaJSVersion = js.Dynamic.literal(`type` = JSONSchema7TypeName.string)
         )
       )
       .asInstanceOf[JSONSchema7]
@@ -45,6 +49,8 @@ object Options {
     override val moduleKind = "CommonJSModule"
     override val verbosity = "info"
     override val targetDirectory = "target"
+    override val scalaVersion = "2.13.1"
+    override val scalaJSVersion = "1.0.0"
   }
 
   def get(context: LoaderContext, name: String): Try[Options] = {

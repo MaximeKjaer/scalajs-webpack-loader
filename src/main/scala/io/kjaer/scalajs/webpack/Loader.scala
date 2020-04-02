@@ -48,8 +48,8 @@ object Loader {
         WebpackLoggerOptions(name = name, level = options.verbosity)
       )
 
-      val dependencies = Dependencies.default
-
+      val dependencies =
+        Dependencies(scalaVersion = options.scalaVersion, scalaJSVersion = options.scalaJSVersion)
       val currentDir = path.resolve(".")
       val targetDir =
         path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaMinorVersion}")

@@ -24,7 +24,3 @@ case class Dependencies(scalaVersion: String, scalaJSVersion: String) {
 
   def toSeq: Seq[Dependency] = Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI)
 }
-
-object Dependencies {
-  def default: Dependencies = Dependencies(scalaVersion = "2.13.1", scalaJSVersion = "1.0.0")
-}

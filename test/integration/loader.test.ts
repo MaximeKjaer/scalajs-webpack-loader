@@ -1,12 +1,12 @@
 import { testError, testSnapshot } from "./testers";
 
 describe("loader", function() {
-  this.timeout(20000);
+  const networkTimeout = 20000;
 
   describe("example", () => {
     it("outputs the snapshot", async () => {
       await testSnapshot("example");
-    });
+    }).timeout(networkTimeout);
   });
 
   describe("wrong-options", () => {
@@ -18,6 +18,12 @@ describe("loader", function() {
   describe("scala-entry", () => {
     it("outputs the snapshot", async () => {
       await testSnapshot("scala-entry");
-    });
+    }).timeout(networkTimeout);
+  });
+
+  describe("custom-scala-version", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("custom-scala-version");
+    }).timeout(networkTimeout);
   });
 });
