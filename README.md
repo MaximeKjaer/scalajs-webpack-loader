@@ -90,7 +90,7 @@ module.exports = {
 | Option key        | Type                                                              | Default     | Description                                                   |
 | ----------------- | ----------------------------------------------------------------- | ----------- | ------------------------------------------------------------- |
 | `mainMethod`      | string or undefined                                               | `undefined` | Execute the specified `main(Array[String])` method on startup |
-| `verbosity`       | `"trace"`, `"debug"`, `"info"`, `"warn"`, `"error"` or `"silent"` | `"warn"`    | Do not display log levels below specified verbosity           |
+| `verbosity`       | `"trace"`, `"debug"`, `"info"`, `"warn"`, `"error"` or `"silent"` | `"info"`    | Do not display log levels below specified verbosity           |
 | `targetDirectory` | string                                                            | `"target"`  | Target directory for intermediary Scala build artifacts       |
 
 ## Development

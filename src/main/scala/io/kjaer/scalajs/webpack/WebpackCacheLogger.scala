@@ -7,9 +7,9 @@ class WebpackCacheLogger(logger: WebpackLogger) extends CacheLogger {
     logger.info("Downloading artifact " + url)
 
   override def downloadedArtifact(url: String, success: Boolean): Unit =
-    if (success) logger.log("Downloaded " + url)
+    if (success) logger.info("Downloaded " + url)
     else logger.error("Failed to download " + url)
 
   override def foundLocally(url: String): Unit =
-    logger.info("Found locally " + url)
+    logger.debug("Found locally " + url)
 }

@@ -60,11 +60,12 @@ object Loader {
 
       fs.ensureDirSync(classesDir)
 
+      logger.info("Fetching dependencies")
       val downloadAndCompile = for {
         dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
-        _ = logger.log("Compiling")
+        _ = logger.info("Compiling")
         compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
-        _ = logger.log("Linking")
+        _ = logger.info("Linking")
         linkingOutput <- link(classesDir, targetFile, dependencyFiles, options)
         outputFile <- fs.promises.readFile(targetFile).toFuture
       } yield outputFile

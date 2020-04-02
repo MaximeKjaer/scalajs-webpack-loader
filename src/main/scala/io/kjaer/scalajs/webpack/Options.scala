@@ -43,7 +43,7 @@ object Options {
   def defaults: Options = new Options {
     override val mainMethod = js.undefined
     override val moduleKind = "CommonJSModule"
-    override val verbosity = "warn"
+    override val verbosity = "info"
     override val targetDirectory = "target"
   }
 
