@@ -9,10 +9,12 @@
     <img alt="Scala.js logo" src="http://www.scala-js.org/assets/img/scala-js-logo.svg" height="150"/>
 </a>
 
-[Webpack](http://webpack.js.org/) loader for [Scala.js](https://www.scala-js.org/).
-Import Scala.js code in a Webpack project, without having to set up a Scala build.
+[Webpack](http://webpack.js.org/) loader for [Scala.js](https://www.scala-js.org/).  
+Import Scala.js code in a Webpack project, without having to set up a separate Scala build.
 
 </div>
+
+scalajs-webpack-loader is similar to [scalajs-bundler](https://github.com/scalacenter/scalajs-bundler) in that it is a tool that uses Webpack to bundle Scala.js code alongside JavaScript code. Use scalajs-bundler if your build tool is SBT, and use scalajs-webpack-loader if your build tool is Webpack.
 
 ## Installing
 
