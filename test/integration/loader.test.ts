@@ -26,4 +26,10 @@ describe("loader", function() {
       await testSnapshot("custom-scala-version");
     }).timeout(networkTimeout);
   });
+
+  describe("library-dependencies", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("library-dependencies");
+    }).timeout(networkTimeout);
+  });
 });

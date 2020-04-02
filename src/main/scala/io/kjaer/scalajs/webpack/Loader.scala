@@ -48,11 +48,11 @@ object Loader {
         WebpackLoggerOptions(name = name, level = options.verbosity)
       )
 
-      val dependencies =
-        Dependencies(scalaVersion = options.scalaVersion, scalaJSVersion = options.scalaJSVersion)
+      val Right(dependencies) = Dependencies.fromOptions(options) // TODO better error handling
+
       val currentDir = path.resolve(".")
       val targetDir =
-        path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaMinorVersion}")
+        path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaBinVersion}")
       val classesDir = path.join(targetDir, "classes")
       val targetFile = path.join(targetDir, "bundle.js")
       val cacheDir = path.join(currentDir, ".cache")
@@ -99,11 +99,17 @@ object Loader {
       classesDir: String,
       dependencyFiles: DependencyFiles
   ): Future[String] = {
-    val javaOptions = Seq("-cp", dependencyFiles.scalaCompiler.classpath, "scala.tools.nsc.Main")
+    val javaOptions =
+      Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaCompiler), "scala.tools.nsc.Main")
 
     val plugin = Seq("-Xplugin:" + dependencyFiles.scalaJSCompiler.file)
     val destination = Seq("-d", classesDir)
-    val classpath = Seq("-classpath", dependencyFiles.scalaJSLibrary.classpath)
+    val classpath = Seq(
+      "-classpath",
+      DependencyFiles.classpath(
+        dependencyFiles.scalaJSLibrary +: dependencyFiles.libraryDependencies
+      )
+    )
     val scalaOptions = plugin ++ destination ++ classpath
 
     execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles)
@@ -115,7 +121,8 @@ object Loader {
       dependencyFiles: DependencyFiles,
       options: Options
   ): Future[String] = {
-    val javaOptions = Seq("-cp", dependencyFiles.scalaJSCLI.classpath, "org.scalajs.cli.Scalajsld")
+    val javaOptions =
+      Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaJSCLI), "org.scalajs.cli.Scalajsld")
 
     val stdlib = Seq("--stdlib", dependencyFiles.scalaJSLibrary.file)
     val moduleKind = Seq("--moduleKind", options.moduleKind)
@@ -123,7 +130,13 @@ object Loader {
     val mainMethod = options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
     val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
 
-    execCommand("java", javaOptions ++ scalajsldOptions :+ classesDir)
+    execCommand(
+      "java",
+      javaOptions ++
+        scalajsldOptions ++
+        dependencyFiles.libraryDependencies.flatMap(_.allFiles) :+
+        classesDir
+    )
   }
 
   private def execCommand(command: String, options: Seq[String]): Future[String] = {

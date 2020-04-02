@@ -6,8 +6,13 @@ case class DependencyFiles(
     scalaCompiler: DependencyFile,
     scalaJSCompiler: DependencyFile,
     scalaJSLibrary: DependencyFile,
-    scalaJSCLI: DependencyFile
+    scalaJSCLI: DependencyFile,
+    libraryDependencies: Seq[DependencyFile]
 )
+
+case class DependencyFile(file: String, transitiveFiles: Seq[String]) {
+  def allFiles: Seq[String] = file +: transitiveFiles
+}
 
 object DependencyFiles {
   def fromResolution(
@@ -15,34 +20,31 @@ object DependencyFiles {
       dependencies: Dependencies,
       files: Map[DependencyName, String]
   ): DependencyFiles = {
-    def file(dependency: Dependency): DependencyFile =
-      DependencyFile.fromResolution(dependency, resolution, files)
+    def dependencyFile(dependency: Dependency): DependencyFile = {
+      val name = dependencyName(dependency)
+      val transitiveDeps = resolution
+        .subset(Seq(dependency))
+        .dependencies
+        .map(dependencyName) - name
+      val file = files(name)
+      val transitive = files.filter {
+        case (dep, _) => transitiveDeps.contains(dep)
+      }
+      DependencyFile(file, transitive.values.toSeq)
+    }
 
     DependencyFiles(
-      scalaCompiler = file(dependencies.scalaCompiler),
-      scalaJSCompiler = file(dependencies.scalaJSCompiler),
-      scalaJSLibrary = file(dependencies.scalaJSLib),
-      scalaJSCLI = file(dependencies.scalaJSCLI)
+      scalaCompiler = dependencyFile(dependencies.scalaCompiler),
+      scalaJSCompiler = dependencyFile(dependencies.scalaJSCompiler),
+      scalaJSLibrary = dependencyFile(dependencies.scalaJSLib),
+      scalaJSCLI = dependencyFile(dependencies.scalaJSCLI),
+      libraryDependencies = dependencies.libraryDependencies.map(dependencyFile)
     )
   }
-}
 
-case class DependencyFile(file: String, transitive: Seq[String]) {
-  def classpath: String = (file +: transitive).mkString(":")
-}
+  def classpath(dependencyFile: DependencyFile): String =
+    dependencyFile.allFiles.mkString(":")
 
-object DependencyFile {
-  def fromResolution(
-      dependency: Dependency,
-      resolution: Resolution,
-      files: Map[DependencyName, String]
-  ): DependencyFile = {
-    val name = dependencyName(dependency)
-    val transitiveDeps = resolution.subset(Seq(dependency)).dependencies.map(dependencyName) - name
-    val file = files(name)
-    val transitive = files.filter {
-      case (dep, _) => transitiveDeps.contains(dep)
-    }
-    DependencyFile(file, transitive.values.toSeq)
-  }
+  def classpath(dependencyFiles: Seq[DependencyFile]): String =
+    dependencyFiles.flatMap(_.allFiles).toSet.mkString(":")
 }

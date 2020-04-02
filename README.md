@@ -87,13 +87,14 @@ module.exports = {
 
 ### Loader options
 
-| Option key        | Type                                                              | Default     | Description                                                   |
-| ----------------- | ----------------------------------------------------------------- | ----------- | ------------------------------------------------------------- |
-| `mainMethod`      | string or undefined                                               | `undefined` | Execute the specified `main(Array[String])` method on startup |
-| `verbosity`       | `"trace"`, `"debug"`, `"info"`, `"warn"`, `"error"` or `"silent"` | `"info"`    | Do not display log levels below specified verbosity           |
-| `targetDirectory` | string                                                            | `"target"`  | Target directory for intermediary Scala build artifacts       |
-| `scalaVersion`    | string                                                            | `"2.13.1"`  | Version of the Scala compiler                                 |
-| `scalaJSVersion`  | string                                                            | `"1.0.0"`   | Version of the Scala.js compiler                              |
+| Option key            | Type                                                              | Default     | Description                                                          |
+| --------------------- | ----------------------------------------------------------------- | ----------- | -------------------------------------------------------------------- |
+| `mainMethod`          | string or undefined                                               | `undefined` | Execute the specified `main(Array[String])` method on startup        |
+| `verbosity`           | `"trace"`, `"debug"`, `"info"`, `"warn"`, `"error"` or `"silent"` | `"info"`    | Do not display log levels below specified verbosity                  |
+| `targetDirectory`     | string                                                            | `"target"`  | Target directory for intermediary Scala build artifacts              |
+| `scalaVersion`        | string                                                            | `"2.13.1"`  | Version of the Scala compiler                                        |
+| `scalaJSVersion`      | string                                                            | `"1.0.0"`   | Version of the Scala.js compiler                                     |
+| `libraryDependencies` | array of strings                                                  | `[]`        | List of Scala.js dependencies, e.g. `["com.lihaoyi::upickle:0.9.9"]` |
 
 ## Development
 
