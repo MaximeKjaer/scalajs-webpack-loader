@@ -50,7 +50,19 @@ This example assumes the following directory structure:
 └── package.json
 ```
 
-scalajs-webpack-loader allows you to import a Scala.js module into another Webpack module. A Scala.js module is a directory containing `*.scala` files, with an empty `.sjsproject` file at the root.
+scalajs-webpack-loader allows you to import a Scala.js module into another Webpack module. A Scala.js module is a directory containing `*.scala` files, with an empty `.sjsproject` file at the root. Here, we can define `HelloWorld.scala` as follows:
+
+```scala
+import scalajs.js.annotation._
+
+@JSExportTopLevel("HelloWorld")
+object HelloWorld {
+  @JSExport
+  def sayHello(): Unit = {
+    println("Hello world!")
+  }
+}
+```
 
 You can then import the Scala.js module in `index.js` as follows:
 
@@ -60,11 +72,18 @@ import { HelloWorld } from "../scala/.sjsproject";
 HelloWorld.sayHello();
 ```
 
-You should add the loader to your `webpack.config.js`:
+You should add scalajs-webpack-loader to your `webpack.config.js`:
 
 ```javascript
 module.exports = {
+  // Configure entry and output paths:
+  entry: "src/js/index.js",
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "bundle.js"
+  },
   // ...
+  // Add scalajs-webpack-loader:
   module: {
     rules: [
       {
@@ -83,6 +102,13 @@ module.exports = {
     ]
   }
 };
+```
+
+Run `npx webpack` to create the output bundle. The loader will download dependencies, compile the Scala.js code to the `target` folder, and bundle it with the JS module. Executing the output bundle in Node.js gives the following output:
+
+```console
+$ node dist/bundle.js
+Hello world!
 ```
 
 ### Loader options
