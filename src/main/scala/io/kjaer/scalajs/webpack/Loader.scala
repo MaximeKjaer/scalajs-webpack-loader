@@ -1,18 +1,14 @@
 package io.kjaer.scalajs.webpack
 
-import io.kjaer.scalajs.webpack.DependencyFetch.{
-  DependencyConflictException,
-  FetchException,
-  ResolutionException
-}
-
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
+
 import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
 import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
 import typings.webpack.mod.loader.LoaderContext
 
+import coursier.util.EitherT
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.Failure
@@ -27,78 +23,71 @@ object Loader {
       val callback = self.async().getOrElse {
         throw new Error("Async loaders are not supported")
       }
-      def returnOutput(output: Buffer): Unit = callback(js.undefined, output, js.undefined)
-      def returnError(err: Throwable): Unit = callback(
-        typings.std.Error(err.getMessage),
-        js.undefined,
-        js.undefined
-      )
-
-      val options = Options.get(self, name).get // TODO better error handling
-
-      val scalaFolder = self.resourcePath.split(path.sep).init.mkString(path.sep)
-      val scalaFiles = fs
-        .readdirSync(scalaFolder)
-        .filter(_.endsWith(".scala"))
-        .map(file => path.join(scalaFolder, file))
-
-      scalaFiles.foreach(file => self.addDependency(file))
-
-      implicit val logger: WebpackLogger = getLogger(
-        WebpackLoggerOptions(name = name, level = options.verbosity)
-      )
-
-      val Right(dependencies) = Dependencies.fromOptions(options) // TODO better error handling
-
-      val currentDir = path.resolve(".")
-      val targetDir =
-        path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaBinVersion}")
-      val classesDir = path.join(targetDir, "classes")
-      val targetFile = path.join(targetDir, "bundle.js")
-      val cacheDir = path.join(currentDir, ".cache")
-      // val cacheDir = path.join(os.homedir(), ".ivy2/local")
-
-      fs.ensureDirSync(classesDir)
-
-      logger.info("Fetching dependencies")
-      val downloadAndCompile = for {
-        dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
-        _ = logger.info("Compiling")
-        compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
-        _ = logger.info("Linking")
-        linkingOutput <- link(classesDir, targetFile, dependencyFiles, options)
-        outputFile <- fs.promises.readFile(targetFile).toFuture
-      } yield outputFile
-
-      downloadAndCompile
-        .onComplete {
-          case Success(output) =>
-            returnOutput(output)
-
-          case Failure(err) =>
-            err match {
-              case ResolutionException(errors) =>
-                logger.error("The following dependencies could not be resolved:")
-                logger.error(errors.mkString("\n"))
-              case DependencyConflictException(conflicts) =>
-                logger.error("The following dependencies conflict:")
-                logger.error(conflicts.mkString("\n"))
-              case FetchException(errors) =>
-                logger.error("Fetching could not be done for the following reasons:")
-                logger.error(errors.mkString("\n"))
-              case _ =>
-                logger.error("An unknown error occurred")
-                logger.error(err.getMessage)
-            }
-            returnError(err)
-        }
+      load(self).run.onComplete {
+        case Failure(err) =>
+          callback(typings.std.Error(err.getMessage), js.undefined, js.undefined)
+        case Success(Left(err)) =>
+          callback(
+            // TODO Remove cast: the type js.Error is correct, the typing library is wrong.
+            err.toJSError.asInstanceOf[typings.std.Error],
+            js.undefined,
+            js.undefined
+          )
+        case Success(Right(output)) =>
+          callback(js.undefined, output, js.undefined)
+      }
     }
+
+  private def load(self: LoaderContext): EitherT[Future, LoaderException, Buffer] =
+    for {
+      options <- EitherT.fromEither(Options.get(self, name))
+      dependencies <- EitherT.fromEither(Dependencies.fromOptions(options))
+      buffer <- downloadAndCompile(self, options, dependencies)
+    } yield buffer
+
+  private def downloadAndCompile(
+      self: LoaderContext,
+      options: Options,
+      dependencies: Dependencies
+  ): EitherT[Future, LoaderException, Buffer] = {
+    val scalaFolder = self.resourcePath.split(path.sep).init.mkString(path.sep)
+    val scalaFiles = fs
+      .readdirSync(scalaFolder)
+      .filter(_.endsWith(".scala"))
+      .map(file => path.join(scalaFolder, file))
+
+    scalaFiles.foreach(file => self.addDependency(file))
+
+    implicit val logger: WebpackLogger = getLogger(
+      WebpackLoggerOptions(name = name, level = options.verbosity)
+    )
+
+    val currentDir = path.resolve(".")
+    val targetDir =
+      path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaBinVersion}")
+    val classesDir = path.join(targetDir, "classes")
+    val targetFile = path.join(targetDir, "bundle.js")
+    val cacheDir = path.join(currentDir, ".cache")
+    // val cacheDir = path.join(os.homedir(), ".ivy2/local")
+
+    fs.ensureDirSync(classesDir)
+
+    logger.info("Fetching dependencies")
+    for {
+      dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
+      _ = logger.info("Compiling")
+      compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
+      _ = logger.info("Linking")
+      linkingOutput <- link(classesDir, targetFile, dependencyFiles, options)
+      outputFile <- readFile(targetFile)
+    } yield outputFile
+  }
 
   private def compile(
       scalaFiles: Iterable[String],
       classesDir: String,
       dependencyFiles: DependencyFiles
-  ): Future[String] = {
+  ): EitherT[Future, LoaderException, String] = {
     val javaOptions =
       Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaCompiler), "scala.tools.nsc.Main")
 
@@ -112,7 +101,7 @@ object Loader {
     )
     val scalaOptions = plugin ++ destination ++ classpath
 
-    execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles)
+    execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles).leftMap(CompilerException)
   }
 
   private def link(
@@ -120,7 +109,7 @@ object Loader {
       targetFile: String,
       dependencyFiles: DependencyFiles,
       options: Options
-  ): Future[String] = {
+  ): EitherT[Future, LoaderException, String] = {
     val javaOptions =
       Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaJSCLI), "org.scalajs.cli.Scalajsld")
 
@@ -130,17 +119,16 @@ object Loader {
     val mainMethod = options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
     val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
 
-    execCommand(
-      "java",
-      javaOptions ++
-        scalajsldOptions ++
-        dependencyFiles.libraryDependencies.flatMap(_.allFiles) :+
-        classesDir
-    )
+    val classpath = dependencyFiles.libraryDependencies.flatMap(_.allFiles) :+ classesDir
+
+    execCommand("java", javaOptions ++ scalajsldOptions ++ classpath).leftMap(LinkerException)
   }
 
-  private def execCommand(command: String, options: Seq[String]): Future[String] = {
-    val promise = Promise[String]()
+  private def execCommand(
+      command: String,
+      options: Seq[String]
+  ): EitherT[Future, String, String] = {
+    val promise = Promise[Either[String, String]]()
     val stdout = new StringBuilder()
     val stderr = new StringBuilder()
     val process = childProcess.spawn(command, js.Array(options: _*))
@@ -149,10 +137,11 @@ object Loader {
       .on_exit(
         nodeStrings.exit,
         (code, signals) => {
-          if (code != null && code == 0d) promise.success(stdout.mkString)
+          if (code != null && code == 0d)
+            promise.success(Right(stdout.mkString))
           else
-            promise.failure(
-              js.JavaScriptException(
+            promise.success(
+              Left(
                 stderr.mkString + s"\nExited with code $code (because of $signals)"
               )
             )
@@ -171,6 +160,15 @@ object Loader {
         stderr.appendAll(data)
       })
 
-    promise.future
+    EitherT(promise.future)
   }
+
+  private def readFile(file: String): EitherT[Future, LoaderException, Buffer] =
+    EitherT(
+      fs.promises
+        .readFile(file)
+        .toFuture
+        .map(Right(_))
+        .recover(err => Left(FileReadException(file, err.getMessage)))
+    )
 }

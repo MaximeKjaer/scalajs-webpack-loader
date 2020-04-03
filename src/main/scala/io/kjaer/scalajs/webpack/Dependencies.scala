@@ -16,7 +16,7 @@ case class Dependencies(
 }
 
 object Dependencies {
-  def fromOptions(options: Options): Either[Seq[String], Dependencies] = {
+  def fromOptions(options: Options): Either[LoaderException, Dependencies] = {
     val scalaVersion = options.scalaVersion
     val scalaJSVersion = options.scalaJSVersion
     val scalaBinVersion = binVersion(scalaVersion)
@@ -28,7 +28,7 @@ object Dependencies {
         .partitionMap(identity)
 
     if (errors.nonEmpty)
-      Left(errors)
+      Left(LibraryDependenciesParseException(errors))
     else
       Right(
         Dependencies(

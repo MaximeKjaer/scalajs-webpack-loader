@@ -7,8 +7,7 @@ import typings.webpack.mod.loader.LoaderContext
 import typings.loaderUtils.mod.getOptions
 import typings.schemaUtils.validateMod.ValidationErrorConfiguration
 import typings.schemaUtils.{mod => validateOptions}
-
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait Options extends js.Object {
   val mainMethod: js.UndefOr[String]
@@ -59,11 +58,11 @@ object Options {
     override val libraryDependencies = js.Array()
   }
 
-  def get(context: LoaderContext, name: String): Try[Options] = {
+  def get(context: LoaderContext, name: String): Either[LoaderException, Options] = {
     val options = getOptions(context)
-    Try {
-      validateOptions(schema, options, ValidationErrorConfiguration(name = name))
-      js.Object.assign(defaults, options).asInstanceOf[Options]
+    Try(validateOptions(schema, options, ValidationErrorConfiguration(name = name))) match {
+      case Failure(exception) => Left(OptionsValidationException(exception.getMessage))
+      case Success(_)         => Right(js.Object.assign(defaults, options).asInstanceOf[Options])
     }
   }
 }

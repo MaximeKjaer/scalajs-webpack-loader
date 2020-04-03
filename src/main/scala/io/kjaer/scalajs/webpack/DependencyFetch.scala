@@ -1,7 +1,7 @@
 package io.kjaer.scalajs.webpack
 
 import coursier.{Dependency, MavenRepository, Resolution, Resolve}
-import coursier.util.{Artifact, Gather, Task}
+import coursier.util.{Artifact, EitherT, Gather, Task}
 import typings.fsExtra.{mod => fs}
 import typings.node.nodeStrings
 import typings.node.pathMod.{^ => path}
@@ -12,42 +12,35 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 
 object DependencyFetch {
-  case class ResolutionException(errors: Seq[(DependencyName, Seq[String])])
-      extends Exception("Could not get metadata about some dependencies")
-
-  case class DependencyConflictException(conflicts: Set[Dependency])
-      extends Exception("Conflicts were found in the dependencies")
-
-  case class FetchException(errors: Seq[String])
-      extends Exception("An error happened while fetching artifacts")
-
   def fetchDependencies(
       dependencies: Dependencies,
       cacheDirectory: String
-  )(implicit logger: WebpackLogger): Future[DependencyFiles] =
+  )(implicit logger: WebpackLogger): EitherT[Future, LoaderException, DependencyFiles] =
     for {
-      resolution <- resolve(dependencies.toSeq)
-      files <- fetchArtifacts(resolution, cacheDirectory)
+      resolution <- EitherT(resolve(dependencies.toSeq))
+      files <- EitherT(fetchArtifacts(resolution, cacheDirectory))
     } yield DependencyFiles.fromResolution(resolution, dependencies, files)
 
-  private def resolve(dependencies: Seq[Dependency]): Future[Resolution] =
+  private def resolve(dependencies: Seq[Dependency]): Future[Either[LoaderException, Resolution]] =
     Resolve()
       .withRepositories(Seq(MavenRepository("https://repo1.maven.org/maven2")))
       .withDependencies(dependencies)
       .future()
-      .flatMap { resolution =>
+      .map { resolution =>
         if (resolution.errors.nonEmpty)
-          Future.failed(ResolutionException(resolution.errors))
+          Left(ResolutionException(resolution.errors))
         else if (resolution.conflicts.nonEmpty)
-          Future.failed(DependencyConflictException(resolution.conflicts))
+          Left(DependencyConflictException(resolution.conflicts))
         else
-          Future.successful(resolution)
+          Right(resolution)
       }
 
   private def fetchArtifacts(
       resolutions: Resolution,
       cacheDirectory: String
-  )(implicit logger: WebpackLogger): Future[Map[DependencyName, String]] = {
+  )(
+      implicit logger: WebpackLogger
+  ): Future[Either[LoaderException, Map[DependencyName, String]]] = {
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
         case (dependency, _, artifact) =>
@@ -68,10 +61,10 @@ object DependencyFetch {
           }
       })
       .future()
-      .flatMap { artifacts =>
+      .map { artifacts =>
         val (errors, dependencyFiles) = artifacts.partitionMap(identity)
-        if (errors.nonEmpty) Future.failed(FetchException(errors))
-        else Future.successful(dependencyFiles.toMap)
+        if (errors.nonEmpty) Left(DownloadException(errors))
+        else Right(dependencyFiles.toMap)
       }
   }
 
