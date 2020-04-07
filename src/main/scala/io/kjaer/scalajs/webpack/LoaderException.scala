@@ -1,11 +1,8 @@
 package io.kjaer.scalajs.webpack
 
-import scala.scalajs.js
 import coursier.Dependency
 
-sealed abstract class LoaderException(message: String) extends Exception(message) {
-  def toJSError: js.Error = js.Error(message)
-}
+sealed abstract class LoaderException(message: String) extends Exception(message)
 
 case class OptionsValidationException(message: String)
     extends LoaderException(s"Options do not conform to schema.\n$message")

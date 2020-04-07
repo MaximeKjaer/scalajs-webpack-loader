@@ -2,37 +2,39 @@ package io.kjaer.scalajs.webpack
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-
 import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
 import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
 import typings.webpack.mod.loader.LoaderContext
-
 import coursier.util.EitherT
+import typings.sourceMap.mod.RawSourceMap
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
+import scala.scalajs.js.|
 import scala.util.Failure
 import scala.util.Success
 
 object Loader {
   val name = "scalajs-webpack-loader"
-
   @JSExportTopLevel("default")
   val loader: js.ThisFunction1[LoaderContext, String, Unit] =
     (self: LoaderContext, source: String) => {
-      val callback = self.async().getOrElse {
+      type loaderCallback = js.Function3[
+        /* err */ js.UndefOr[js.Error | Null],
+        /* content */ js.UndefOr[String | Buffer],
+        /* sourceMap */ js.UndefOr[RawSourceMap],
+        Unit
+      ]
+      val callback = self.async().asInstanceOf[js.UndefOr[loaderCallback]].getOrElse {
         throw new Error("Async loaders are not supported")
       }
+
       load(self).run.onComplete {
         case Failure(err) =>
-          callback(typings.std.Error(err.getMessage), js.undefined, js.undefined)
+          callback(js.Error(err.getMessage), js.undefined, js.undefined)
         case Success(Left(err)) =>
-          callback(
-            // TODO Remove cast: the type js.Error is correct, the typing library is wrong.
-            err.toJSError.asInstanceOf[typings.std.Error],
-            js.undefined,
-            js.undefined
-          )
+          callback(js.Error(err.getMessage), js.undefined, js.undefined)
         case Success(Right(output)) =>
           callback(js.undefined, output, js.undefined)
       }

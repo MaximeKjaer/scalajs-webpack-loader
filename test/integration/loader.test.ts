@@ -11,7 +11,7 @@ describe("loader", function() {
 
   describe("wrong-options", () => {
     it("fails with a schema validation error", async () => {
-      await testError("wrong-options", "OptionsValidationException");
+      await testError("wrong-options", "Options do not conform to schema");
     });
   });
 
