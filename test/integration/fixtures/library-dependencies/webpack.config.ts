@@ -17,7 +17,10 @@ const config: webpack.Configuration = {
         use: {
           loader,
           options: {
-            libraryDependencies: ["com.lihaoyi::upickle:0.9.9"]
+            libraryDependencies: [
+              "com.lihaoyi:::upickle:0.9.9",
+              "org.scala-lang.modules::scala-async:0.10.0"
+            ]
           }
         }
       }

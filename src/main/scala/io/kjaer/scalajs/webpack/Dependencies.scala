@@ -19,8 +19,8 @@ object Dependencies {
   def fromOptions(options: Options): Either[LoaderException, Dependencies] = {
     val scalaVersion = options.scalaVersion
     val scalaJSVersion = options.scalaJSVersion
-    val scalaBinVersion = binVersion(scalaVersion)
-    val scalaJSBinVersion = binVersion(scalaJSVersion)
+    val scalaBinVersion = scalaBinaryVersion(scalaVersion)
+    val scalaJSBinVersion = scalaJSBinaryVersion(scalaJSVersion)
 
     val (errors, libraryDependencies) =
       options.libraryDependencies.toSeq
@@ -52,20 +52,29 @@ object Dependencies {
       )
   }
 
-  def binVersion(fullVersion: String): String = fullVersion match {
-    case s"$major.0.$_-$milestone"      => s"$major.0-$milestone"
-    case s"$major.0.$_"                 => major
-    case s"$major.$minor.$_-$milestone" => s"$major.$minor-$milestone"
-    case s"$major.$minor.$_"            => s"$major.$minor"
+  private val ScalaJSFullVersion = """^(\d+)\.(\d+)\.(\d+)(-.*)?$""".r
+
+  def scalaJSBinaryVersion(scalaJSVersion: String): String = scalaJSVersion match {
+    case ScalaJSFullVersion("0", "6", _, _)                            => "0.6"
+    case ScalaJSFullVersion(major, "0", "0", suffix) if suffix != null => s"$major.0$suffix"
+    case ScalaJSFullVersion(major, _, _, _)                            => major
   }
 
-  // TODO use error ADT instead of string
+  private val ReleaseVersion = """(\d+)\.(\d+)\.(\d+)""".r
+  private val MinorSnapshotVersion = """(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+
+  def scalaBinaryVersion(scalaVersion: String): String = scalaVersion match {
+    case ReleaseVersion(major, minor, _)       => s"$major.$minor"
+    case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+    case _                                     => scalaVersion
+  }
+
   def parse(
       module: String,
       scalaBinVersion: String,
       scalaJSBinVersion: String
   ): Either[String, Dependency] = module match {
-    case s"$org::$name:$version" =>
+    case s"$org:::$name:$version" =>
       Right(
         Dependency(
           Module(
@@ -75,9 +84,12 @@ object Dependencies {
           version
         )
       )
+    case s"$org::$name:$version" =>
+      Right(Dependency(Module(Organization(org), ModuleName(s"${name}_$scalaBinVersion")), version))
     case _ =>
       Left(
-        s"Could not parse dependency '$module'. Expected a string of the format 'org::name:version'"
+        s"Could not parse dependency '$module'. Expected a string of the format " +
+          "'org::name:version' or 'org:::name:version'"
       )
   }
 }
