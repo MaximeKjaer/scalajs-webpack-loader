@@ -83,10 +83,7 @@ object Loader {
       classesDir: String
   )(implicit ctx: Context): Future[Unit] = {
     scalaFiles.foreach(ctx.loader.addDependency)
-    fs.promises
-      .rmdir(classesDir)
-      .toFuture
-      .flatMap(_ => fs.ensureDir(classesDir).asInstanceOf[js.Promise[Unit]].toFuture)
+    fs.emptyDir(classesDir).toFuture
   }
 
   private def compile(
