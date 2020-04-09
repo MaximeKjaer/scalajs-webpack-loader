@@ -2,6 +2,12 @@
 
 ## master
 
+- Fix `libraryDependencies` option to follow Mill format
+
+  `libraryDependencies` now correctly follow Mill's format, with `:::` for Scala.js dependencies and `::` for Scala dependencies.
+
+  The conversion of a dependency to a Maven artifact name has also been fixed.
+
 - Clean up `targetDirectory` before compilation
 
   This fixes a problem where artifacts from previous builds were linked with the newly compiled artifacts, which would usually result in linking errors.
