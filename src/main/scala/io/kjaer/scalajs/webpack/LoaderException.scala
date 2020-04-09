@@ -17,7 +17,7 @@ case class FileReadException(file: String, message: String)
 
 sealed abstract class DependencyFetchException(message: String) extends LoaderException(message)
 
-case class ResolutionException(errors: Seq[(DependencyName, Seq[String])])
+case class ResolutionException(errors: Seq[(DependencyId, Seq[String])])
     extends DependencyFetchException(
       s"Could not get metadata about the following dependencies: ${errors.mkString(", ")}"
     )

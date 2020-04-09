@@ -18,14 +18,14 @@ object DependencyFiles {
   def fromResolution(
       resolution: Resolution,
       dependencies: Dependencies,
-      files: Map[DependencyName, String]
+      files: Map[DependencyId, String]
   ): DependencyFiles = {
     def dependencyFile(dependency: Dependency): DependencyFile = {
-      val name = dependencyName(dependency)
+      val name = dependencyId(dependency)
       val transitiveDeps = resolution
         .subset(Seq(dependency))
         .dependencies
-        .map(dependencyName) - name
+        .map(dependencyId) - name
       val file = files(name)
       val transitive = files.filter {
         case (dep, _) => transitiveDeps.contains(dep)

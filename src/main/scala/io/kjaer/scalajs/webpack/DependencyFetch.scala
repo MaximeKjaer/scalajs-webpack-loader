@@ -39,7 +39,7 @@ object DependencyFetch {
       cacheDirectory: String
   )(
       implicit ctx: Context
-  ): Future[Either[LoaderException, Map[DependencyName, String]]] = {
+  ): Future[Either[LoaderException, Map[DependencyId, String]]] = {
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
         case (dependency, _, artifact) =>
@@ -55,7 +55,7 @@ object DependencyFetch {
               if (fs.existsSync(file)) fetchLocal(artifact, file)
               else download(artifact, file)
             fetchedFile
-              .map(either => either.flatMap(name => Right((dependencyName(dependency), name))))
+              .map(either => either.flatMap(name => Right((dependencyId(dependency), name))))
           }
       })
       .future()

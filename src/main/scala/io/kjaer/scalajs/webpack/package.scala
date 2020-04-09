@@ -11,11 +11,11 @@ package object webpack {
   /**
     * A [[coursier.Dependency]] may have different fields before and after resolution. This makes it
     * hard to find a requested dependency in a map of resolved dependencies. Instead, we use
-    * `(Module, String)` as a unique identifier of a dependency.
+    * the module (organization and dependency name) and version as a unique identifier of a dependency.
     */
-  type DependencyName = (Module, String)
+  type DependencyId = (Module, String)
 
-  def dependencyName(dependency: Dependency): DependencyName =
+  def dependencyId(dependency: Dependency): DependencyId =
     (dependency.module, dependency.version)
 
   /**
