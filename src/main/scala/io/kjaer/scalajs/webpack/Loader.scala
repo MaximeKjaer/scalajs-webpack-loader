@@ -69,7 +69,6 @@ object Loader {
     val cacheDir = path.join(currentDir, ".cache")
     // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
-    logger.info("Fetching dependencies")
     for {
       _ <- EitherT.point(prepareFiles(self, scalaFiles, classesDir))
       dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
