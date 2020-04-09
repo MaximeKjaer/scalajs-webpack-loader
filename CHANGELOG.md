@@ -1,5 +1,13 @@
 # Changelog
 
+## master
+
+- Clean up `targetDirectory` before compilation
+
+  This fixes a problem where artifacts from previous builds were linked with the newly compiled artifacts, which would usually result in linking errors.
+
+  Eventually, this will be superseded by proper incremental compilation. For now, compiling with a clean state will at least ensure correct compilation.
+
 ## v0.0.2
 
 - Add `scalaVersion` and `scalaJSVersion` options

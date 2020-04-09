@@ -52,18 +52,15 @@ object Loader {
       options: Options,
       dependencies: Dependencies
   ): EitherT[Future, LoaderException, Buffer] = {
+    implicit val logger: WebpackLogger = getLogger(
+      WebpackLoggerOptions(name = name, level = options.verbosity)
+    )
+
     val scalaFolder = self.resourcePath.split(path.sep).init.mkString(path.sep)
     val scalaFiles = fs
       .readdirSync(scalaFolder)
       .filter(_.endsWith(".scala"))
       .map(file => path.join(scalaFolder, file))
-
-    scalaFiles.foreach(file => self.addDependency(file))
-
-    implicit val logger: WebpackLogger = getLogger(
-      WebpackLoggerOptions(name = name, level = options.verbosity)
-    )
-
     val currentDir = path.resolve(".")
     val targetDir =
       path.join(currentDir, options.targetDirectory, s"scala-${dependencies.scalaBinVersion}")
@@ -72,10 +69,9 @@ object Loader {
     val cacheDir = path.join(currentDir, ".cache")
     // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
-    fs.ensureDirSync(classesDir)
-
     logger.info("Fetching dependencies")
     for {
+      _ <- EitherT.point(prepareFiles(self, scalaFiles, classesDir))
       dependencyFiles <- DependencyFetch.fetchDependencies(dependencies, cacheDir)
       _ = logger.info("Compiling")
       compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
@@ -83,6 +79,18 @@ object Loader {
       linkingOutput <- link(classesDir, targetFile, dependencyFiles, options)
       outputFile <- readFile(targetFile)
     } yield outputFile
+  }
+
+  private def prepareFiles(
+      self: LoaderContext,
+      scalaFiles: Iterable[String],
+      classesDir: String
+  ): Future[Unit] = {
+    scalaFiles.foreach(self.addDependency)
+    fs.promises
+      .rmdir(classesDir)
+      .toFuture
+      .flatMap(_ => fs.ensureDir(classesDir).asInstanceOf[js.Promise[Unit]].toFuture)
   }
 
   private def compile(
