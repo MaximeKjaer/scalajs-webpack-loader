@@ -13,13 +13,12 @@ import scala.scalajs.js
 
 object DependencyFetch {
   def fetchDependencies(
-      dependencies: Dependencies,
       cacheDirectory: String
-  )(implicit logger: WebpackLogger): EitherT[Future, LoaderException, DependencyFiles] =
+  )(implicit ctx: Context): EitherT[Future, LoaderException, DependencyFiles] =
     for {
-      resolution <- EitherT(resolve(dependencies.toSeq))
+      resolution <- EitherT(resolve(ctx.dependencies.toSeq))
       files <- EitherT(fetchArtifacts(resolution, cacheDirectory))
-    } yield DependencyFiles.fromResolution(resolution, dependencies, files)
+    } yield DependencyFiles.fromResolution(resolution, ctx.dependencies, files)
 
   private def resolve(dependencies: Seq[Dependency]): Future[Either[LoaderException, Resolution]] =
     Resolve()
@@ -39,7 +38,7 @@ object DependencyFetch {
       resolutions: Resolution,
       cacheDirectory: String
   )(
-      implicit logger: WebpackLogger
+      implicit ctx: Context
   ): Future[Either[LoaderException, Map[DependencyName, String]]] = {
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
@@ -52,7 +51,6 @@ object DependencyFetch {
             s"${dependency.module.name.value}.jar"
           )
           Task { _ =>
-            implicit val cacheLogger: WebpackCacheLogger = new WebpackCacheLogger(logger)
             val fetchedFile =
               if (fs.existsSync(file)) fetchLocal(artifact, file)
               else download(artifact, file)
@@ -69,14 +67,14 @@ object DependencyFetch {
   }
 
   private def fetchLocal(artifact: Artifact, file: String)(
-      implicit logger: WebpackCacheLogger
+      implicit ctx: Context
   ): Future[Either[String, String]] =
-    Future(logger.foundLocally(artifact.url)).map(_ => Right(file))
+    Future(ctx.logger.foundLocally(artifact.url)).map(_ => Right(file))
 
   private def download(artifact: Artifact, file: String)(
-      implicit logger: WebpackCacheLogger
+      implicit ctx: Context
   ): Future[Either[String, String]] =
-    Future(logger.downloadingArtifact(artifact.url))
+    Future(ctx.logger.downloadingArtifact(artifact.url))
       .flatMap { _ =>
         fs.ensureDirSync(path.dirname(file))
         val writeStream = fs.createWriteStream(file)
@@ -87,12 +85,12 @@ object DependencyFetch {
         promise.future
       }
       .map { file =>
-        logger.downloadedArtifact(artifact.url, success = true)
+        ctx.logger.downloadedArtifact(artifact.url, success = true)
         Right(file)
       }
       .recover {
         case e: Exception =>
-          logger.downloadedArtifact(artifact.url, success = false)
+          ctx.logger.downloadedArtifact(artifact.url, success = false)
           val msg = e.toString + Option(e.getMessage).fold("")(" (" + _ + ")")
           Left(msg)
       }

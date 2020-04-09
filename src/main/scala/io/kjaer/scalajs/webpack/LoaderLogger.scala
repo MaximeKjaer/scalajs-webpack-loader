@@ -2,7 +2,7 @@ package io.kjaer.scalajs.webpack
 
 import coursier.cache.CacheLogger
 
-class WebpackCacheLogger(logger: WebpackLogger) extends CacheLogger {
+case class LoaderLogger(private val logger: WebpackLogger) extends CacheLogger {
   override def downloadingArtifact(url: String): Unit =
     logger.info("Downloading artifact " + url)
 
@@ -12,4 +12,9 @@ class WebpackCacheLogger(logger: WebpackLogger) extends CacheLogger {
 
   override def foundLocally(url: String): Unit =
     logger.debug("Found locally " + url)
+
+  def operation[T](name: String)(thunk: => T): T = {
+    logger.info(name)
+    thunk
+  }
 }
