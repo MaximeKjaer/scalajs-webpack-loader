@@ -1,6 +1,6 @@
 # Changelog
 
-## master
+## v0.0.3
 
 - Add caching to Coursier resolutions
 
