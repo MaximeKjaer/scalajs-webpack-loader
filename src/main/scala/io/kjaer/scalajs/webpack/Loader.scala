@@ -143,7 +143,7 @@ object Loader {
       .on_exit(
         nodeStrings.exit,
         (code, signals) => {
-          if (code != null && code == 0d)
+          if (code.asInstanceOf[Double] == 0d)
             promise.success(Right(stdout.mkString))
           else
             promise.success(
