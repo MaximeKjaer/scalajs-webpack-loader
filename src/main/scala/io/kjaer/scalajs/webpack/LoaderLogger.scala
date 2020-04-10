@@ -17,4 +17,6 @@ case class LoaderLogger(private val logger: WebpackLogger) extends CacheLogger {
     logger.info(name)
     thunk
   }
+
+  def debug(message: String): Unit = logger.debug(message)
 }
