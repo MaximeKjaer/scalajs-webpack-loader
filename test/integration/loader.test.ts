@@ -1,7 +1,7 @@
 import { testError, testSnapshot } from "./testers";
 
 describe("loader", function() {
-  const networkTimeout = 20000;
+  const networkTimeout = 60 * 1000;
 
   describe("example", () => {
     it("outputs the snapshot", async () => {
