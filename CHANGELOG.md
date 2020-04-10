@@ -2,6 +2,12 @@
 
 ## master
 
+- Add caching to Coursier resolutions
+
+  The loader was previously caching artifacts, but not resolutions. Now, both are cached, meaning that an Internet connection is no longer required to build Scala.js code (unless the dependencies change).
+
+  Note that this is a breaking change, as the internal paths to cached files have changed. They now match the paths to which Coursier saves files, which will enable sharing the cache with other Coursier clients (though this will be a feature for a future release).
+
 - Fix `libraryDependencies` option to follow Mill format
 
   `libraryDependencies` now correctly follow Mill's format, with `:::` for Scala.js dependencies and `::` for Scala dependencies.
