@@ -88,7 +88,7 @@ sealed abstract class FileCache(
 }
 
 /** Fetches filenames from the cache. Downloads artifacts if needed. */
-case class FileNameCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = None)
+class FileNameCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = None)
     extends FileCache(cacheDir, _loggerOpt) {
 
   override protected def fetchLocal(filePath: String): Future[Either[String, String]] =
@@ -102,7 +102,7 @@ case class FileNameCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = Non
 }
 
 /** Fetches file contents from the cache. Downloads artifacts if needed. */
-case class FileContentCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = None)
+class FileContentCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = None)
     extends FileCache(cacheDir, _loggerOpt) {
   override protected def fetchLocal(filePath: String): Future[Either[String, String]] =
     fs.readFile(filePath)

@@ -22,7 +22,7 @@ object DependencyFetch {
     Resolve()
       .withRepositories(Seq(MavenRepository("https://repo1.maven.org/maven2")))
       .withDependencies(dependencies)
-      .withCache(FileContentCache(cacheDirectory))
+      .withCache(new FileContentCache(cacheDirectory))
       .future()
       .map { resolution =>
         if (resolution.errors.nonEmpty)
@@ -39,7 +39,7 @@ object DependencyFetch {
   )(
       implicit ctx: Context
   ): Future[Either[LoaderException, Map[DependencyId, String]]] = {
-    val cache = FileNameCache(cacheDirectory, Some(ctx.logger))
+    val cache = new FileNameCache(cacheDirectory, Some(ctx.logger))
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
         case (dependency, _, artifact) =>
