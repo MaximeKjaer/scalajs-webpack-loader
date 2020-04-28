@@ -35,9 +35,9 @@ sealed abstract class FileCache(
 
           for {
             pathExists <- fs.pathExists(artifactPath).toFuture
-            res <- (if (pathExists) fetchLocal(artifactPath)
-                    else fetchRemote(artifact.url, artifactPath))
-          } yield res
+            file <- (if (pathExists) fetchLocal(artifactPath)
+                     else fetchRemote(artifact.url, artifactPath))
+          } yield file
         }
       )
 
