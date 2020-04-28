@@ -21,6 +21,12 @@ describe("loader", function() {
     }).timeout(networkTimeout);
   });
 
+  describe("scalac-options", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("scalac-options");
+    }).timeout(networkTimeout);
+  });
+
   describe("custom-scala-version", () => {
     it("outputs the snapshot", async () => {
       await testSnapshot("custom-scala-version");

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.4
+
+- Add support for `scalacOptions` (#1)
+
 ## v0.0.3
 
 - Add caching to Coursier resolutions

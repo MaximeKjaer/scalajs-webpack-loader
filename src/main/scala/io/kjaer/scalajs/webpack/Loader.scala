@@ -102,7 +102,7 @@ object Loader {
         dependencyFiles.scalaJSLibrary +: dependencyFiles.libraryDependencies
       )
     )
-    val scalaOptions = plugin ++ destination ++ classpath
+    val scalaOptions = plugin ++ ctx.options.scalacOptions ++ destination ++ classpath
 
     ctx.logger.operation("Compiling") {
       execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles).leftMap(CompilerException)

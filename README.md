@@ -122,6 +122,9 @@ Hello world!
 | `scalaVersion`        | string                                                            | `"2.13.1"`  | Version of the Scala compiler                                         |
 | `scalaJSVersion`      | string                                                            | `"1.0.0"`   | Version of the Scala.js compiler                                      |
 | `libraryDependencies` | array of strings                                                  | `[]`        | List of Scala.js dependencies, e.g. `["com.lihaoyi:::upickle:0.9.9"]` |
+| `scalacOptions`       | array of strings                                                  | `[]`        | List of [scalac options][scalac-options], e.g. `["-Xfatal-warnings"]` |
+
+[scalac-options]: https://docs.scala-lang.org/overviews/compiler-options/index.html
 
 For the `libraryDependencies` options, use the Mill format for dependencies. You can use [Scaladex](https://index.scala-lang.org/) to see what that looks like for your specific dependencies. Use `:::` to get the Scala.js artifact (e.g. `com.lihaoyi:::upickle:0.9.9`), and `::` for the Scala artifact (e.g. `org.scala-lang.modules::scala-async:0.10.0`).
 

@@ -17,6 +17,7 @@ trait Options extends js.Object {
   val scalaVersion: String
   val scalaJSVersion: String
   val libraryDependencies: js.Array[String]
+  val scalacOptions: js.Array[String]
 }
 
 object Options {
@@ -43,6 +44,13 @@ object Options {
           libraryDependencies = js.Dynamic.literal(
             `type` = JSONSchema7TypeName.array,
             items = js.Dynamic.literal(`type` = JSONSchema7TypeName.string)
+          ),
+          scalacOptions = js.Dynamic.literal(
+            `type` = JSONSchema7TypeName.array,
+            items = js.Dynamic.literal(
+              `type` = JSONSchema7TypeName.string,
+              pattern = """[^\s]+"""
+            )
           )
         )
       )
@@ -56,6 +64,7 @@ object Options {
     override val scalaVersion = "2.13.1"
     override val scalaJSVersion = "1.0.0"
     override val libraryDependencies = js.Array()
+    override val scalacOptions = js.Array()
   }
 
   def get(context: LoaderContext, name: String): Either[LoaderException, Options] = {
