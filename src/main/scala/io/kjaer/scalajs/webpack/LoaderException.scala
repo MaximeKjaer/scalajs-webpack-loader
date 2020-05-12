@@ -9,21 +9,20 @@ case class OptionsValidationException(message: String)
 
 case class LibraryDependenciesParseException(parseErrors: Seq[String])
     extends LoaderException(
-      s"Some libraryDependencies could not be parsed: ${parseErrors.mkString(", ")}"
+      s"Some libraryDependencies could not be parsed: ${parseErrors.mkString("\n")}"
     )
 
 case class FileReadException(file: String, message: String)
     extends LoaderException(s"Could not read file '$file': $message")
 
 sealed abstract class DependencyFetchException(message: String) extends LoaderException(message)
-
 case class ResolutionException(errors: Seq[(DependencyId, Seq[String])])
     extends DependencyFetchException(
-      s"Could not get metadata about the following dependencies: ${errors.mkString(", ")}"
+      s"The following errors happened while resolving dependencies: ${errors.mkString("\n")}"
     )
 case class DependencyConflictException(conflicts: Set[Dependency])
     extends DependencyFetchException(
-      s"Conflicts were found in the following dependencies: ${conflicts.mkString(", ")}"
+      s"Conflicts were found in the following dependencies: ${conflicts.mkString("\n")}"
     )
 case class DownloadException(errors: Seq[String])
     extends DependencyFetchException(
@@ -31,8 +30,7 @@ case class DownloadException(errors: Seq[String])
     )
 
 sealed abstract class CompilationException(message: String) extends LoaderException(message)
-
 case class CompilerException(stderr: String)
-    extends CompilationException(s"Compilation failed with the following output:\n${stderr}")
+    extends CompilationException(s"Compilation failed with the following output:\n$stderr")
 case class LinkerException(stderr: String)
-    extends CompilationException(s"Linking failed with the following output:\n${stderr}")
+    extends CompilationException(s"Linking failed with the following output:\n$stderr")

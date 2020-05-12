@@ -2,6 +2,7 @@ package io.kjaer.scalajs.webpack
 
 import coursier.{Dependency, MavenRepository, Resolution, Resolve}
 import coursier.util.{EitherT, Gather, Task}
+import coursier.error.ResolutionError
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,6 +32,12 @@ object DependencyFetch {
           Left(DependencyConflictException(resolution.conflicts))
         else
           Right(resolution)
+      }
+      .recover {
+        case err @ (_: ResolutionError.CantDownloadModule) =>
+          Left(DownloadException(Seq(err.getMessage)))
+        case err @ (_: ResolutionError.ConflictingDependencies) =>
+          Left(DependencyConflictException(err.dependencies))
       }
 
   private def fetchArtifacts(

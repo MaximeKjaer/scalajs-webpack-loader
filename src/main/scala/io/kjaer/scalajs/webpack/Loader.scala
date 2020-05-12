@@ -32,6 +32,7 @@ object Loader {
 
       load(self).run.onComplete {
         case Failure(err) =>
+          err.printStackTrace()
           callback(js.Error(err.getMessage), js.undefined, js.undefined)
         case Success(Left(err)) =>
           callback(js.Error(err.getMessage), js.undefined, js.undefined)

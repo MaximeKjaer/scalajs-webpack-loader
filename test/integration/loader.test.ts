@@ -38,4 +38,14 @@ describe("loader", function() {
       await testSnapshot("library-dependencies");
     }).timeout(networkTimeout);
   });
+
+  describe("wrong-dependencies", () => {
+    it("fails with a 404 error", async () => {
+      await testError(
+        "wrong-dependencies",
+        "Error downloading ThisOrgDoesNotExist:ThisPackageDoesNotExist_sjs1_2.13:1.0.0\n" +
+          "  Server replied with HTTP 404"
+      );
+    });
+  });
 });
