@@ -8,11 +8,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object DependencyFetch {
-  def fetchDependencies(
+  def fetch(
+      dependencies: Seq[Dependency],
       cacheDirectory: String
   )(implicit ctx: Context): EitherT[Future, LoaderException, DependencyFiles] =
     for {
-      resolution <- EitherT(resolve(ctx.dependencies.toSeq, cacheDirectory))
+      resolution <- EitherT(resolve(dependencies, cacheDirectory))
       files <- EitherT(fetchArtifacts(resolution, cacheDirectory))
     } yield DependencyFiles.fromResolution(resolution, ctx.dependencies, files)
 

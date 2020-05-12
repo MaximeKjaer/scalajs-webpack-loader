@@ -72,7 +72,7 @@ object Loader {
 
     for {
       _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
-      dependencyFiles <- DependencyFetch.fetchDependencies(cacheDir)
+      dependencyFiles <- DependencyFetch.fetch(ctx.dependencies.toSeq, cacheDir)
       compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
       linkingOutput <- link(classesDir, targetFile, dependencyFiles)
       outputFile <- readFile(targetFile)
