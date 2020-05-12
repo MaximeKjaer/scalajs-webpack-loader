@@ -15,7 +15,7 @@ object DependencyFetch {
     for {
       resolution <- EitherT(resolve(dependencies, cacheDirectory))
       files <- EitherT(fetchArtifacts(resolution, cacheDirectory))
-    } yield DependencyFiles.fromResolution(resolution, ctx.dependencies, files)
+    } yield DependencyFiles.fromResolution(resolution, ctx.options.dependencies, files)
 
   private def resolve(
       dependencies: Seq[Dependency],

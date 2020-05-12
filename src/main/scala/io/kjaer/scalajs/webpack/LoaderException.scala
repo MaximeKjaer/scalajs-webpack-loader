@@ -4,11 +4,19 @@ import coursier.Dependency
 
 sealed abstract class LoaderException(message: String) extends Exception(message)
 
+sealed abstract class LoaderOptionsException(message: String) extends LoaderException(message)
 case class OptionsValidationException(message: String)
-    extends LoaderException(s"Options do not conform to schema.\n$message")
-
+    extends LoaderOptionsException(s"Options do not conform to schema.\n$message")
+case class ScalaVersionParseException(version: String)
+    extends LoaderOptionsException(
+      s"Could not parse scalaVersion '$version'. Expected a string of the format '2.13.2'"
+    )
+case class ScalaJSVersionParseException(version: String)
+    extends LoaderOptionsException(
+      s"Could not parse scalaJSVersion '$version'. Expected a string of the format '1.0.1'"
+    )
 case class LibraryDependenciesParseException(parseErrors: Seq[String])
-    extends LoaderException(
+    extends LoaderOptionsException(
       s"Some libraryDependencies could not be parsed: ${parseErrors.mkString("\n")}"
     )
 

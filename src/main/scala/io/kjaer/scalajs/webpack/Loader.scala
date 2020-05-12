@@ -44,9 +44,9 @@ object Loader {
   private def load(self: LoaderContext): EitherT[Future, LoaderException, Buffer] =
     for {
       options <- EitherT.fromEither(Options.get(self, name))
-      dependencies <- EitherT.fromEither(Dependencies.fromOptions(options))
+      parsedOptions <- EitherT.fromEither(ParsedOptions.parse(options))
       logger = LoaderLogger(getLogger(WebpackLoggerOptions(name = name, level = options.verbosity)))
-      ctx = Context(self, options, dependencies, logger)
+      ctx = Context(self, parsedOptions, logger)
       buffer <- downloadAndCompile(ctx)
     } yield buffer
 
@@ -63,7 +63,7 @@ object Loader {
       path.join(
         currentDir,
         ctx.options.targetDirectory,
-        s"scala-${ctx.dependencies.scalaBinVersion}"
+        s"scala-${ctx.options.versions.scalaBinVersion}"
       )
     val classesDir = path.join(targetDir, "classes")
     val targetFile = path.join(targetDir, "bundle.js")
@@ -72,7 +72,7 @@ object Loader {
 
     for {
       _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
-      dependencyFiles <- DependencyFetch.fetch(ctx.dependencies.toSeq, cacheDir)
+      dependencyFiles <- DependencyFetch.fetch(ctx.options.dependencies.toSeq, cacheDir)
       compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
       linkingOutput <- link(classesDir, targetFile, dependencyFiles)
       outputFile <- readFile(targetFile)

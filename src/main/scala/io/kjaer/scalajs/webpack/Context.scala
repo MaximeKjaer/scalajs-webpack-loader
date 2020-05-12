@@ -4,7 +4,6 @@ import typings.webpack.mod.loader.LoaderContext
 
 case class Context(
     loader: LoaderContext,
-    options: Options,
-    dependencies: Dependencies,
+    options: ParsedOptions,
     logger: LoaderLogger
 )

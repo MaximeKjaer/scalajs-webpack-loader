@@ -1,30 +1,27 @@
 package io.kjaer.scalajs.webpack
 
-import coursier._
+import coursier.{Dependency, Module, ModuleName, Organization}
+import coursier.{organizationString => org}
+import coursier.{moduleNameString => name}
 
 case class Dependencies(
-    scalaBinVersion: String,
     scalaCompiler: Dependency,
     scalaJSCompiler: Dependency,
     scalaJSLib: Dependency,
     scalaJSCLI: Dependency,
     libraryDependencies: Seq[Dependency]
 ) {
-
   def toSeq: Seq[Dependency] =
     Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI) ++ libraryDependencies
 }
 
 object Dependencies {
-  def fromOptions(options: Options): Either[LoaderException, Dependencies] = {
-    val scalaVersion = options.scalaVersion
-    val scalaJSVersion = options.scalaJSVersion
-    val scalaBinVersion = scalaBinaryVersion(scalaVersion)
-    val scalaJSBinVersion = scalaJSBinaryVersion(scalaJSVersion)
-
-    val (errors, libraryDependencies) =
-      options.libraryDependencies.toSeq
-        .map(parse(_, scalaBinVersion, scalaJSBinVersion))
+  def parse(
+      libraryDependencies: Seq[String]
+  )(versions: Versions): Either[LoaderException, Dependencies] = {
+    val (errors, parsedDependencies) =
+      libraryDependencies
+        .map(parseDependency(_)(versions.scalaBinVersion, versions.scalaJSBinVersion))
         .partitionMap(identity)
 
     if (errors.nonEmpty)
@@ -32,48 +29,29 @@ object Dependencies {
     else
       Right(
         Dependencies(
-          scalaBinVersion = scalaBinVersion,
           scalaCompiler =
-            Dependency(Module(org"org.scala-lang", name"scala-compiler"), scalaVersion),
+            Dependency(Module(org"org.scala-lang", name"scala-compiler"), versions.scalaVersion),
           scalaJSCompiler = Dependency(
-            Module(org"org.scala-js", ModuleName(s"scalajs-compiler_$scalaVersion")),
-            scalaJSVersion
+            Module(org"org.scala-js", ModuleName(s"scalajs-compiler_${versions.scalaVersion}")),
+            versions.scalaJSVersion
           ),
           scalaJSLib = Dependency(
-            Module(org"org.scala-js", ModuleName(s"scalajs-library_$scalaBinVersion")),
-            scalaJSVersion
+            Module(org"org.scala-js", ModuleName(s"scalajs-library_${versions.scalaBinVersion}")),
+            versions.scalaJSVersion
           ),
           scalaJSCLI = Dependency(
-            Module(org"org.scala-js", ModuleName(s"scalajs-cli_$scalaBinVersion")),
-            scalaJSVersion
+            Module(org"org.scala-js", ModuleName(s"scalajs-cli_${versions.scalaBinVersion}")),
+            versions.scalaJSVersion
           ),
-          libraryDependencies = libraryDependencies
+          libraryDependencies = parsedDependencies
         )
       )
   }
 
-  private val ScalaJSFullVersion = """^(\d+)\.(\d+)\.(\d+)(-.*)?$""".r
-
-  def scalaJSBinaryVersion(scalaJSVersion: String): String = scalaJSVersion match {
-    case ScalaJSFullVersion("0", "6", _, _)                            => "0.6"
-    case ScalaJSFullVersion(major, "0", "0", suffix) if suffix != null => s"$major.0$suffix"
-    case ScalaJSFullVersion(major, _, _, _)                            => major
-  }
-
-  private val ReleaseVersion = """(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = """(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-
-  def scalaBinaryVersion(scalaVersion: String): String = scalaVersion match {
-    case ReleaseVersion(major, minor, _)       => s"$major.$minor"
-    case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-    case _                                     => scalaVersion
-  }
-
-  def parse(
-      module: String,
+  private[webpack] def parseDependency(dependency: String)(
       scalaBinVersion: String,
       scalaJSBinVersion: String
-  ): Either[String, Dependency] = module match {
+  ): Either[String, Dependency] = dependency match {
     case s"$org:::$name:$version" =>
       Right(
         Dependency(
@@ -88,7 +66,7 @@ object Dependencies {
       Right(Dependency(Module(Organization(org), ModuleName(s"${name}_$scalaBinVersion")), version))
     case _ =>
       Left(
-        s"Could not parse dependency '$module'. Expected a string of the format " +
+        s"Could not parse dependency '$dependency'. Expected a string of the format " +
           "'org::name:version' or 'org:::name:version'"
       )
   }
