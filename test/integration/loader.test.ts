@@ -48,4 +48,19 @@ describe("loader", function() {
       );
     });
   });
+
+  describe("wrong-scala-version", () => {
+    it("fails with a parsing error", async () => {
+      await testError("wrong-scala-version", "Could not parse scalaVersion");
+    });
+  });
+
+  describe("wrong-scalajs-version", () => {
+    it("fails with a parsing error", async () => {
+      await testError(
+        "wrong-scalajs-version",
+        "Could not parse scalaJSVersion"
+      );
+    });
+  });
 });
