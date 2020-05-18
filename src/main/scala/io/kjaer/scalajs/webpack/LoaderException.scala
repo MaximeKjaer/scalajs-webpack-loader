@@ -6,18 +6,31 @@ sealed abstract class LoaderException(message: String) extends Exception(message
 
 sealed abstract class LoaderOptionsException(message: String) extends LoaderException(message)
 case class OptionsValidationException(message: String)
-    extends LoaderOptionsException(s"Options do not conform to schema.\n$message")
+    extends LoaderOptionsException(
+      s"""The ${Loader.name} options do not match the schema. The following errors were found:
+         |$message
+         |""".stripMargin
+    )
 case class ScalaVersionParseException(version: String)
     extends LoaderOptionsException(
-      s"Could not parse scalaVersion '$version'. Expected a string of the format '2.13.2'"
+      s"""Could not parse the ${Loader.name} options field "options.scalaVersion"
+         |  Expected a version string (e.g. "2.13.2")
+         |  Got the string "$version"
+         |""".stripMargin
     )
 case class ScalaJSVersionParseException(version: String)
     extends LoaderOptionsException(
-      s"Could not parse scalaJSVersion '$version'. Expected a string of the format '1.0.1'"
+      s"""Could not parse the ${Loader.name} options field "options.scalaJSVersion"
+         |  Expected a version string (e.g. "1.1.0")
+         |  Got the string "$version"
+         |""".stripMargin
     )
 case class LibraryDependenciesParseException(parseErrors: Seq[String])
     extends LoaderOptionsException(
-      s"Some libraryDependencies could not be parsed: ${parseErrors.mkString("\n")}"
+      s"""Could not parse the ${Loader.name} options field "options.libraryDependencies".
+         |The following dependencies are invalid:
+         |${parseErrors.mkString("  - ", "\n  - ", "\n")}
+         |""".stripMargin
     )
 
 case class FileReadException(file: String, message: String)
@@ -39,6 +52,6 @@ case class DownloadException(errors: Seq[String])
 
 sealed abstract class CompilationException(message: String) extends LoaderException(message)
 case class CompilerException(stderr: String)
-    extends CompilationException(s"Compilation failed with the following output:\n$stderr")
+    extends CompilationException(s"Scala.js compilation failed with the following output:\n$stderr")
 case class LinkerException(stderr: String)
-    extends CompilationException(s"Linking failed with the following output:\n$stderr")
+    extends CompilationException(s"Scala.js linking failed with the following output:\n$stderr")

@@ -11,7 +11,12 @@ describe("loader", function() {
 
   describe("wrong-options", () => {
     it("fails with a schema validation error", async () => {
-      await testError("wrong-options", "Options do not conform to schema");
+      await testError(
+        "wrong-options",
+        "Error: The scalajs-webpack-loader options do not match the schema. The following errors were found:\n" +
+          "ValidationError: Invalid configuration object. scalajs-webpack-loader has been initialized using a configuration object that does not match the API schema.\n" +
+          " - configuration has an unknown property 'thisShouldNotBeAccepted'. These properties are valid:"
+      );
     });
   });
 
@@ -46,12 +51,17 @@ describe("loader", function() {
         "Error downloading ThisOrgDoesNotExist:ThisPackageDoesNotExist_sjs1_2.13:1.0.0\n" +
           "  Server replied with HTTP 404"
       );
-    });
+    }).timeout(networkTimeout);
   });
 
   describe("wrong-scala-version", () => {
     it("fails with a parsing error", async () => {
-      await testError("wrong-scala-version", "Could not parse scalaVersion");
+      await testError(
+        "wrong-scala-version",
+        'Could not parse the scalajs-webpack-loader options field "options.scalaVersion"\n' +
+          '  Expected a version string (e.g. "2.13.2")\n' +
+          '  Got the string "this is obviously wrong"\n'
+      );
     });
   });
 
@@ -59,7 +69,9 @@ describe("loader", function() {
     it("fails with a parsing error", async () => {
       await testError(
         "wrong-scalajs-version",
-        "Could not parse scalaJSVersion"
+        'Could not parse the scalajs-webpack-loader options field "options.scalaJSVersion"\n' +
+          '  Expected a version string (e.g. "1.1.0")\n' +
+          '  Got the string "this is obviously wrong"\n'
       );
     });
   });
