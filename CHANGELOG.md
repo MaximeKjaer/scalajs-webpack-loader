@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.0.5
+
+This release is all about better error messages!
+
+- Improve error messages for failed resolutions
+
+  Previously, when Maven replied with a 404, the plugin would throw a `BoxedException`, with no extra indication of what went wrong. This was obviously not so helpful, so this version introduces better error messages for these situations. For instance:
+
+  ```
+  Error downloading ThisOrgDoesNotExist:ThisPackageDoesNotExist_sjs1_2.13:1.0.0
+    Server replied with HTTP 404
+  ```
+
+- Add error messages for invalid `scalaVersion` and `scalaJSVersion` settings
+
+  Previously, the loader would just fail with a `MatchError`. Now, it reports a more helpful error message. For instance, if we set the following `scalaVersion` setting:
+
+  ```js
+  {
+    options: {
+      scalaVersion: "this is obviously wrong";
+    }
+  }
+  ```
+
+  Then the loader will report the following error:
+
+  ```
+  Could not parse the scalajs-webpack-loader options field "options.scalaVersion"
+    Expected a version string (e.g. "2.13.2")
+    Got the string "this is obviously wrong"
+  ```
+
+  `scalaJSVersion` works similarly.
+
 ## v0.0.4
 
 - Add support for `scalacOptions` (#1)
