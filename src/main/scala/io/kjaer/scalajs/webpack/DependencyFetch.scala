@@ -11,16 +11,18 @@ object DependencyFetch {
   def fetch(
       dependencies: Seq[Dependency],
       cacheDirectory: String
-  )(implicit ctx: Context): EitherT[Future, LoaderException, DependencyFiles] =
+  )(
+      implicit logger: LoaderLogger
+  ): EitherT[Future, LoaderException, (Resolution, Map[DependencyId, String])] =
     for {
       resolution <- EitherT(resolve(dependencies, cacheDirectory))
       files <- EitherT(fetchArtifacts(resolution, cacheDirectory))
-    } yield DependencyFiles.fromResolution(resolution, ctx.options.dependencies, files)
+    } yield (resolution, files)
 
   private def resolve(
       dependencies: Seq[Dependency],
       cacheDirectory: String
-  )(implicit ctx: Context): Future[Either[LoaderException, Resolution]] =
+  )(implicit logger: LoaderLogger): Future[Either[LoaderException, Resolution]] =
     Resolve()
       .withRepositories(Seq(MavenRepository("https://repo1.maven.org/maven2")))
       .withDependencies(dependencies)
@@ -45,9 +47,9 @@ object DependencyFetch {
       resolutions: Resolution,
       cacheDirectory: String
   )(
-      implicit ctx: Context
+      implicit logger: LoaderLogger
   ): Future[Either[LoaderException, Map[DependencyId, String]]] = {
-    val cache = new FileNameCache(cacheDirectory, Some(ctx.logger))
+    val cache = new FileNameCache(cacheDirectory, Some(logger))
     Gather[Task]
       .gather(resolutions.dependencyArtifacts().map {
         case (dependency, _, artifact) =>

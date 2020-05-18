@@ -72,7 +72,7 @@ object Loader {
 
     for {
       _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
-      dependencyFiles <- DependencyFetch.fetch(ctx.options.dependencies.toSeq, cacheDir)
+      dependencyFiles <- fetchDependencies(ctx.options.dependencies, cacheDir)
       compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
       linkingOutput <- link(classesDir, targetFile, dependencyFiles)
       outputFile <- readFile(targetFile)
@@ -86,6 +86,13 @@ object Loader {
     scalaFiles.foreach(ctx.loader.addDependency)
     fs.emptyDir(classesDir).toFuture
   }
+
+  private def fetchDependencies(dependencies: Dependencies, cacheDir: String)(
+      implicit ctx: Context
+  ): EitherT[Future, LoaderException, DependencyFiles] =
+    DependencyFetch.fetch(dependencies.toSeq, cacheDir)(ctx.logger).map {
+      case (resolution, files) => DependencyFiles.fromResolution(resolution, dependencies, files)
+    }
 
   private def compile(
       scalaFiles: Iterable[String],
