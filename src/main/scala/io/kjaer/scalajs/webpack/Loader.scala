@@ -70,9 +70,13 @@ object Loader {
     val cacheDir = path.join(currentDir, ".cache")
     // val cacheDir = path.join(os.homedir(), ".ivy2/local")
 
+    val futureProjectDependencyFiles = fetchProjectDependencies(ctx.options.dependencies, cacheDir)
+    val futureBloopFiles = fetchBloop(cacheDir)
+
     for {
       _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
-      projectDependencyFiles <- fetchProjectDependencies(ctx.options.dependencies, cacheDir)
+      projectDependencyFiles <- futureProjectDependencyFiles
+      bloopFiles <- futureBloopFiles
       compilationOutput <- compile(scalaFiles, classesDir, projectDependencyFiles)
       linkingOutput <- link(classesDir, targetFile, projectDependencyFiles)
       outputFile <- readFile(targetFile)
@@ -93,6 +97,15 @@ object Loader {
     DependencyFetch.fetch(dependencies.toSeq, cacheDir)(ctx.logger).map {
       case (resolution, files) =>
         ProjectDependencyFiles.fromResolution(resolution, dependencies, files)
+    }
+  }
+
+  private def fetchBloop(
+      cacheDir: String
+  )(implicit ctx: Context): EitherT[Future, LoaderException, DependencyFile] = {
+    DependencyFetch.fetch(Seq(Bloop.Dependencies.bloopLauncher), cacheDir)(ctx.logger).map {
+      case (resolution, files) =>
+        DependencyFile.fromResolution(resolution, Bloop.Dependencies.bloopLauncher, files)
     }
   }
 
