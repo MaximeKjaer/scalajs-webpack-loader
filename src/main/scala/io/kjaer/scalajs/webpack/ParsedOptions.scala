@@ -6,7 +6,7 @@ final case class ParsedOptions(
     verbosity: String,
     targetDirectory: String,
     versions: Versions,
-    dependencies: Dependencies,
+    dependencies: ProjectDependencies,
     scalacOptions: Seq[String]
 )
 
@@ -14,7 +14,7 @@ object ParsedOptions {
   def parse(options: Options): Either[LoaderException, ParsedOptions] =
     for {
       versions <- Versions.parse(options.scalaVersion, options.scalaJSVersion)
-      dependencies <- Dependencies.parse(options.libraryDependencies.toSeq)(versions)
+      dependencies <- ProjectDependencies.parse(options.libraryDependencies.toSeq)(versions)
     } yield ParsedOptions(
       mainMethod = options.mainMethod.toOption,
       moduleKind = options.moduleKind,

@@ -72,9 +72,9 @@ object Loader {
 
     for {
       _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
-      dependencyFiles <- fetchDependencies(ctx.options.dependencies, cacheDir)
-      compilationOutput <- compile(scalaFiles, classesDir, dependencyFiles)
-      linkingOutput <- link(classesDir, targetFile, dependencyFiles)
+      projectDependencyFiles <- fetchProjectDependencies(ctx.options.dependencies, cacheDir)
+      compilationOutput <- compile(scalaFiles, classesDir, projectDependencyFiles)
+      linkingOutput <- link(classesDir, targetFile, projectDependencyFiles)
       outputFile <- readFile(targetFile)
     } yield outputFile
   }
@@ -87,27 +87,33 @@ object Loader {
     fs.emptyDir(classesDir).toFuture
   }
 
-  private def fetchDependencies(dependencies: Dependencies, cacheDir: String)(
+  private def fetchProjectDependencies(dependencies: ProjectDependencies, cacheDir: String)(
       implicit ctx: Context
-  ): EitherT[Future, LoaderException, DependencyFiles] =
+  ): EitherT[Future, LoaderException, ProjectDependencyFiles] = {
     DependencyFetch.fetch(dependencies.toSeq, cacheDir)(ctx.logger).map {
-      case (resolution, files) => DependencyFiles.fromResolution(resolution, dependencies, files)
+      case (resolution, files) =>
+        ProjectDependencyFiles.fromResolution(resolution, dependencies, files)
     }
+  }
 
   private def compile(
       scalaFiles: Iterable[String],
       classesDir: String,
-      dependencyFiles: DependencyFiles
+      projectDependencies: ProjectDependencyFiles
   )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
     val javaOptions =
-      Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaCompiler), "scala.tools.nsc.Main")
+      Seq(
+        "-cp",
+        projectDependencies.scalaCompiler.classPath,
+        "scala.tools.nsc.Main"
+      )
 
-    val plugin = Seq("-Xplugin:" + dependencyFiles.scalaJSCompiler.file)
+    val plugin = Seq("-Xplugin:" + projectDependencies.scalaJSCompiler.jarPath)
     val destination = Seq("-d", classesDir)
     val classpath = Seq(
       "-classpath",
-      DependencyFiles.classpath(
-        dependencyFiles.scalaJSLibrary +: dependencyFiles.libraryDependencies
+      DependencyFile.classpath(
+        projectDependencies.scalaJSLibrary +: projectDependencies.libraryDependencies
       )
     )
     val scalaOptions = plugin ++ ctx.options.scalacOptions ++ destination ++ classpath
@@ -120,18 +126,22 @@ object Loader {
   private def link(
       classesDir: String,
       targetFile: String,
-      dependencyFiles: DependencyFiles
+      projectDependencies: ProjectDependencyFiles
   )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
     val javaOptions =
-      Seq("-cp", DependencyFiles.classpath(dependencyFiles.scalaJSCLI), "org.scalajs.cli.Scalajsld")
+      Seq(
+        "-cp",
+        projectDependencies.scalaJSCLI.classPath,
+        "org.scalajs.cli.Scalajsld"
+      )
 
-    val stdlib = Seq("--stdlib", dependencyFiles.scalaJSLibrary.file)
+    val stdlib = Seq("--stdlib", projectDependencies.scalaJSLibrary.jarPath)
     val moduleKind = Seq("--moduleKind", ctx.options.moduleKind)
     val output = Seq("--output", targetFile)
     val mainMethod = ctx.options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
     val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
 
-    val classpath = dependencyFiles.libraryDependencies.flatMap(_.allFiles) :+ classesDir
+    val classpath = projectDependencies.libraryDependencies.flatMap(_.allPaths) :+ classesDir
 
     ctx.logger.operation("Linking") {
       execCommand("java", javaOptions ++ scalajsldOptions ++ classpath).leftMap(LinkerException)

@@ -1,9 +1,9 @@
 package io.kjaer.scalajs.webpack
 
-import Dependencies._
+import ProjectDependencies._
 import Utils._
 
-class DependenciesSuite extends munit.FunSuite {
+class ProjectDependenciesSuite extends munit.FunSuite {
   test("parse org.scala-lang.modules::scala-async:0.10.0") {
     val dependency =
       rightOrFail1(parseDependency("org.scala-lang.modules::scala-async:0.10.0")("2.12", "1"))

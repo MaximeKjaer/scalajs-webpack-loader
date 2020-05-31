@@ -4,7 +4,7 @@ import coursier.{Dependency, Module, ModuleName, Organization}
 import coursier.{organizationString => org}
 import coursier.{moduleNameString => name}
 
-case class Dependencies(
+case class ProjectDependencies(
     scalaCompiler: Dependency,
     scalaJSCompiler: Dependency,
     scalaJSLib: Dependency,
@@ -15,10 +15,10 @@ case class Dependencies(
     Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI) ++ libraryDependencies
 }
 
-object Dependencies {
+object ProjectDependencies {
   def parse(
       libraryDependencies: Seq[String]
-  )(versions: Versions): Either[LoaderException, Dependencies] = {
+  )(versions: Versions): Either[LoaderException, ProjectDependencies] = {
     val (errors, parsedDependencies) =
       libraryDependencies
         .map(parseDependency(_)(versions.scalaBinVersion, versions.scalaJSBinVersion))
@@ -28,7 +28,7 @@ object Dependencies {
       Left(LibraryDependenciesParseException(errors))
     else
       Right(
-        Dependencies(
+        ProjectDependencies(
           scalaCompiler =
             Dependency(Module(org"org.scala-lang", name"scala-compiler"), versions.scalaVersion),
           scalaJSCompiler = Dependency(
