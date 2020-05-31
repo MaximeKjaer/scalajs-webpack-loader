@@ -3,8 +3,7 @@ package io.kjaer.scalajs.webpack
 import coursier.{Dependency, Resolution}
 
 case class DependencyFile(jarPath: String, transitiveJarsPaths: Seq[String]) {
-  def allPaths: Seq[String] = jarPath +: transitiveJarsPaths
-  def classPath: String = allPaths.mkString(":")
+  def classpath: Seq[String] = jarPath +: transitiveJarsPaths
 }
 
 object DependencyFile {
@@ -25,6 +24,6 @@ object DependencyFile {
     DependencyFile(file, transitiveFiles.values.toSeq)
   }
 
-  def classpath(dependencyFiles: Seq[DependencyFile]): String =
-    dependencyFiles.flatMap(_.allPaths).toSet.mkString(":")
+  def classpath(dependencyFiles: Seq[DependencyFile]): Seq[String] =
+    dependencyFiles.flatMap(_.classpath).distinct
 }

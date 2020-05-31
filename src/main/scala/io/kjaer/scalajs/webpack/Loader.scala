@@ -117,7 +117,7 @@ object Loader {
     val javaOptions =
       Seq(
         "-cp",
-        projectDependencies.scalaCompiler.classPath,
+        projectDependencies.scalaCompiler.classpath.mkString(":"),
         "scala.tools.nsc.Main"
       )
 
@@ -125,9 +125,11 @@ object Loader {
     val destination = Seq("-d", classesDir)
     val classpath = Seq(
       "-classpath",
-      DependencyFile.classpath(
-        projectDependencies.scalaJSLibrary +: projectDependencies.libraryDependencies
-      )
+      DependencyFile
+        .classpath(
+          projectDependencies.scalaJSLibrary +: projectDependencies.libraryDependencies
+        )
+        .mkString(":")
     )
     val scalaOptions = plugin ++ ctx.options.scalacOptions ++ destination ++ classpath
 
@@ -144,7 +146,7 @@ object Loader {
     val javaOptions =
       Seq(
         "-cp",
-        projectDependencies.scalaJSCLI.classPath,
+        projectDependencies.scalaJSCLI.classpath.mkString(":"),
         "org.scalajs.cli.Scalajsld"
       )
 
@@ -154,7 +156,7 @@ object Loader {
     val mainMethod = ctx.options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
     val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
 
-    val classpath = projectDependencies.libraryDependencies.flatMap(_.allPaths) :+ classesDir
+    val classpath = DependencyFile.classpath(projectDependencies.libraryDependencies) :+ classesDir
 
     ctx.logger.operation("Linking") {
       execCommand("java", javaOptions ++ scalajsldOptions ++ classpath).leftMap(LinkerException)

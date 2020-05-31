@@ -8,7 +8,11 @@ case class ProjectDependencyFiles(
     scalaJSLibrary: DependencyFile,
     scalaJSCLI: DependencyFile,
     libraryDependencies: Seq[DependencyFile]
-)
+) {
+
+  /** Classpath needed to compile the project */
+  def classpath: Seq[String] = DependencyFile.classpath(scalaJSLibrary +: libraryDependencies)
+}
 
 object ProjectDependencyFiles {
   def fromResolution(
