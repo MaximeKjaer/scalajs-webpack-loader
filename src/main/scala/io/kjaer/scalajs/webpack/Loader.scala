@@ -2,18 +2,22 @@ package io.kjaer.scalajs.webpack
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
-import typings.node.pathMod.{^ => path}
-import typings.fsExtra.{mod => fs}
-import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
-import typings.webpack.mod.loader.LoaderContext
-import coursier.util.EitherT
-import typings.sourceMap.mod.RawSourceMap
+import scala.scalajs.js.|
+import scala.scalajs.js.JSConverters.iterableOnceConvertible2JSRichIterableOnce
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
-import scala.scalajs.js.|
 import scala.util.Failure
 import scala.util.Success
+
+import coursier.util.EitherT
+
+import typings.node.pathMod.{^ => path}
+import typings.node.{osMod => os}
+import typings.fsExtra.{mod => fs}
+import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
+import typings.webpack.mod.loader.LoaderContext
+import typings.sourceMap.mod.RawSourceMap
 
 object Loader {
   val name = "scalajs-webpack-loader"
@@ -53,32 +57,57 @@ object Loader {
   private def downloadAndCompile(
       implicit ctx: Context
   ): EitherT[Future, LoaderException, Buffer] = {
-    val scalaFolder = ctx.loader.resourcePath.split(path.sep).init.mkString(path.sep)
+    val scalaDirectory = ctx.loader.resourcePath.split(path.sep).init.mkString(path.sep)
     val scalaFiles = fs
-      .readdirSync(scalaFolder)
+      .readdirSync(scalaDirectory)
       .filter(_.endsWith(".scala"))
-      .map(file => path.join(scalaFolder, file))
-    val currentDir = path.resolve(".")
-    val targetDir =
+      .map(file => path.join(scalaDirectory, file))
+    val currentDirectory = path.resolve(".")
+    val targetDirectory =
       path.join(
-        currentDir,
+        currentDirectory,
         ctx.options.targetDirectory,
         s"scala-${ctx.options.versions.scalaBinVersion}"
       )
-    val classesDir = path.join(targetDir, "classes")
-    val targetFile = path.join(targetDir, "bundle.js")
-    val cacheDir = path.join(currentDir, ".cache")
-    // val cacheDir = path.join(os.homedir(), ".ivy2/local")
-    prepareFiles(scalaFiles, classesDir)
+    val classesDirectory = path.join(targetDirectory, "classes")
+    val targetFile = path.join(targetDirectory, "bundle.js")
+    val cacheDirectory = path.join(currentDirectory, ".cache") // path.join(os.homedir(), ".ivy2/local")
+    val projectName = "FIXME-TMP-VALUE"
+    val bloopConfigFile = path.join(os.homedir(), ".bloop", projectName + ".json")
+    val stringifiedDependencies =
+      ctx.options.dependencies.libraryDependencies.map(ProjectDependencies.stringify)
+    def bloopConfig(_classpath: Seq[String]): Bloop.Config = new Bloop.Config {
+      override val version: String = "1.0.0"
+      override val project: Bloop.ProjectConfig = new Bloop.ProjectConfig {
+        override val name: String = projectName
+        override val directory: String = currentDirectory
+        override val sources: js.Array[String] = js.Array(scalaDirectory)
+        override val dependencies: js.Array[String] =
+          stringifiedDependencies.toJSArray
+        override val classpath: js.Array[String] = _classpath.toJSArray
+        override val out: String = targetDirectory
+        override val classesDir: String = classesDirectory
+      }
+    }
 
-    val futureProjectDependencyFiles = fetchProjectDependencies(ctx.options.dependencies, cacheDir)
-    val futureBloopFiles = fetchBloop(cacheDir)
+    prepareFiles(scalaFiles, classesDirectory)
+
+    // These can run concurrently:
+    val futureProjectDependencyFiles =
+      fetchProjectDependencies(ctx.options.dependencies, cacheDirectory)
+    val futureBloopFiles = fetchBloop(cacheDirectory)
 
     for {
       projectDependencyFiles <- futureProjectDependencyFiles
       bloopFiles <- futureBloopFiles
-      compilationOutput <- compile(scalaFiles, classesDir, projectDependencyFiles)
-      linkingOutput <- link(classesDir, targetFile, projectDependencyFiles)
+      _ <- EitherT.point(
+        writeJSONFile(
+          bloopConfigFile,
+          bloopConfig(projectDependencyFiles.classpath)
+        )
+      )
+      compilationOutput <- compile(scalaFiles, classesDirectory, projectDependencyFiles)
+      linkingOutput <- link(classesDirectory, targetFile, projectDependencyFiles)
       outputFile <- readFile(targetFile)
     } yield outputFile
   }
@@ -107,6 +136,10 @@ object Loader {
       case (resolution, files) =>
         DependencyFile.fromResolution(resolution, Bloop.Dependencies.bloopLauncher, files)
     }
+  }
+
+  private def writeJSONFile(path: String, obj: js.Object): Future[Unit] = {
+    fs.writeFile(path, js.JSON.stringify(obj)).toFuture
   }
 
   private def compile(
