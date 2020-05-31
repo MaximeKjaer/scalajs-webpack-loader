@@ -69,12 +69,12 @@ object Loader {
     val targetFile = path.join(targetDir, "bundle.js")
     val cacheDir = path.join(currentDir, ".cache")
     // val cacheDir = path.join(os.homedir(), ".ivy2/local")
+    prepareFiles(scalaFiles, classesDir)
 
     val futureProjectDependencyFiles = fetchProjectDependencies(ctx.options.dependencies, cacheDir)
     val futureBloopFiles = fetchBloop(cacheDir)
 
     for {
-      _ <- EitherT.point(prepareFiles(scalaFiles, classesDir))
       projectDependencyFiles <- futureProjectDependencyFiles
       bloopFiles <- futureBloopFiles
       compilationOutput <- compile(scalaFiles, classesDir, projectDependencyFiles)
@@ -86,9 +86,9 @@ object Loader {
   private def prepareFiles(
       scalaFiles: Iterable[String],
       classesDir: String
-  )(implicit ctx: Context): Future[Unit] = {
+  )(implicit ctx: Context): Unit = {
     scalaFiles.foreach(ctx.loader.addDependency)
-    fs.emptyDir(classesDir).toFuture
+    fs.emptyDirSync(classesDir)
   }
 
   private def fetchProjectDependencies(dependencies: ProjectDependencies, cacheDir: String)(
