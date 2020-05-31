@@ -31,4 +31,16 @@ class ProjectDependenciesSuite extends munit.FunSuite {
     assertEquals(scalaJSCLIVersion("0.6.31"), "0.6.31")
   }
 
+  test("stringify org.scala-lang.modules::scala-async:0.10.0") {
+    val dependency =
+      rightOrFail1(parseDependency("org.scala-lang.modules::scala-async:0.10.0")("2.12", "1"))
+    assertEquals(stringify(dependency), "org.scala-lang.modules:scala-async_2.12:0.10.0")
+  }
+
+  test("stringify org.scalameta:::munit:0.7.2") {
+    val dependency =
+      rightOrFail1(parseDependency("org.scalameta:::munit:0.7.2")("2.12", "1"))
+    assertEquals(stringify(dependency), "org.scalameta:munit_sjs1_2.12:0.7.2")
+  }
+
 }

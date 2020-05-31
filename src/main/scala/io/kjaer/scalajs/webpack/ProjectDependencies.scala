@@ -17,6 +17,9 @@ case class ProjectDependencies(
 }
 
 object ProjectDependencies {
+  def stringify(dependency: Dependency): String =
+    s"${dependency.module.organization.value}:${dependency.module.name.value}:${dependency.version}"
+
   def parse(
       libraryDependencies: Seq[String]
   )(versions: Versions): Either[LoaderException, ProjectDependencies] = {
