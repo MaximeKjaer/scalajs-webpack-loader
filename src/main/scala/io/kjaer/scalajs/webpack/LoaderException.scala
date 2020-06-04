@@ -33,6 +33,8 @@ case class LibraryDependenciesParseException(parseErrors: Seq[String])
          |""".stripMargin
     )
 
+case class FileWriteException(file: String, message: String)
+    extends LoaderException(s"Could not write file '$file': $message")
 case class FileReadException(file: String, message: String)
     extends LoaderException(s"Could not read file '$file': $message")
 

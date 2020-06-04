@@ -1,5 +1,3 @@
-import scala.sys.process.Process
-
 lazy val root = (project in file("."))
   .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterPlugin)
   .settings(
@@ -25,9 +23,8 @@ lazy val root = (project in file("."))
       "webpack-sources"
     ),
     libraryDependencies ++= Seq(
-      // Coursier:
       "io.get-coursier" %%% "coursier" % "2.0.0-RC6-21",
-      // Test dependencies:
+      "ch.epfl.scala" %%% "bloop-config" % "1.4.1-14-7af20d76",
       "org.scalameta" %%% "munit" % "0.7.3" % Test
     ),
     scalaSource in Test := baseDirectory.value / "test" / "unit",
