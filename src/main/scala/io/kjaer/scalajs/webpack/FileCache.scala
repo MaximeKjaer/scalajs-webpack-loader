@@ -15,6 +15,7 @@ import typings.fsExtra.{mod => fs}
 import typings.node.nodeStrings
 import typings.nodeFetch.mod.{default => jsFetch}
 import typings.node.NodeJS.ReadableStream
+import typings.node.BufferEncoding
 
 sealed abstract class FileCache(
     cacheDir: String,
@@ -119,7 +120,7 @@ class FileContentCache(cacheDir: String, _loggerOpt: Option[CacheLogger] = None)
   override protected def fetchLocal(filePath: String): Future[Either[String, String]] =
     fs.readFile(filePath)
       .toFuture
-      .map(_.toString("utf-8"))
+      .map(_.toString(BufferEncoding.utf8))
       .map(Right(_))
       .recover(err => Left(err.getMessage))
 

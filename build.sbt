@@ -1,21 +1,32 @@
+import scala.sys.process.Process
+
 lazy val root = (project in file("."))
-  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterPlugin)
   .settings(
     name := "scalajs-webpack-loader",
     scalaVersion := "2.13.1",
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
-    // Opt-in to Scala-js 1.x semantics whereby `@ScalaJSDefined` annotations aren't necessary:
-    scalacOptions += "-P:scalajs:sjsDefinedByDefault",
-    resolvers += Resolver.bintrayRepo("oyvindberg", "ScalablyTyped"),
+    stUseScalaJsDom := false,
+    Compile / npmDependencies ++= Seq(
+      "@types/loader-utils" -> "2.0.0",
+      "@types/json-schema" -> "7.0.4",
+      "@types/webpack" -> "4.41.7",
+      "@types/node" -> "14.0.10",
+      "@types/node-fetch" -> "2.5.7",
+      "@types/fs-extra" -> "9.0.1",
+      "schema-utils" -> "2.6.5"
+    ),
+    stIgnore ++= List(
+      "ajv",
+      "anymatch",
+      "source-list-map",
+      "tapable",
+      "uglify-js",
+      "webpack-sources"
+    ),
     libraryDependencies ++= Seq(
       // Coursier:
-      "io.get-coursier" %%% "coursier" % "2.0.0-RC6-13",
-      // Typings for NPM dependencies
-      "org.scalablytyped" %%% "loader-utils" % "1.1-dt-20180306Z-fa3460",
-      "org.scalablytyped" %%% "schema-utils" % "2.6.5-3efa30",
-      "org.scalablytyped" %%% "webpack" % "4.41-dt-20200418Z-3147f9",
-      "org.scalablytyped" %%% "fs-extra" % "8.0-dt-20191016Z-4c34ac",
-      "org.scalablytyped" %%% "node-fetch" % "2.5-dt-20191126Z-cfa9e9",
+      "io.get-coursier" %%% "coursier" % "2.0.0-RC6-21",
       // Test dependencies:
       "org.scalameta" %%% "munit" % "0.7.3" % Test
     ),

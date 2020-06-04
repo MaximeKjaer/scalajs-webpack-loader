@@ -6,7 +6,7 @@ const mode: "production" | "development" =
 
 const scalaJSBundle = path.resolve(
   __dirname,
-  `target/scala-2.13/scalajs-webpack-loader-${
+  `target/scala-2.13/scalajs-bundler/main/scalajs-webpack-loader-${
     mode === "production" ? "opt" : "fastopt"
   }.js`
 );

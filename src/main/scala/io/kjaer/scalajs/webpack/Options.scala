@@ -68,10 +68,12 @@ object Options {
   }
 
   def get(context: LoaderContext, name: String): Either[LoaderException, Options] = {
-    val options = getOptions(context)
-    Try(validateOptions(schema, options, ValidationErrorConfiguration(name = name))) match {
-      case Failure(exception) => Left(OptionsValidationException(exception.getMessage))
-      case Success(_)         => Right(js.Object.assign(defaults, options).asInstanceOf[Options])
-    }
+    val options = getOptions(context).asInstanceOf[js.Object]
+    if (options == null) Right(defaults)
+    else
+      Try(validateOptions(schema, options, ValidationErrorConfiguration(name = name))) match {
+        case Failure(exception) => Left(OptionsValidationException(exception.getMessage))
+        case Success(_)         => Right(js.Object.assign(defaults, options).asInstanceOf[Options])
+      }
   }
 }
