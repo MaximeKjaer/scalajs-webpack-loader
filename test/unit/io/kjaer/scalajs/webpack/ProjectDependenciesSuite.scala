@@ -19,4 +19,16 @@ class ProjectDependenciesSuite extends munit.FunSuite {
     assertEquals(dependency.version, "0.7.2")
   }
 
+  test("scalajs-cli version for Scala.js 1.1.0 is 1.0.0") {
+    assertEquals(scalaJSCLIVersion("1.1.0"), "1.0.0")
+  }
+
+  test("scalajs-cli version for Scala.js 0.6.32 is 0.6.32") {
+    assertEquals(scalaJSCLIVersion("0.6.32"), "0.6.32")
+  }
+
+  test("scalajs-cli version for Scala.js 0.6.31 is 0.6.31") {
+    assertEquals(scalaJSCLIVersion("0.6.31"), "0.6.31")
+  }
+
 }

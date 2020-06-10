@@ -38,6 +38,12 @@ describe("loader", function() {
     }).timeout(networkTimeout);
   });
 
+  describe("scalajs-1.1.0", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("scalajs-1.1.0");
+    }).timeout(networkTimeout);
+  });
+
   describe("library-dependencies", () => {
     it("outputs the snapshot", async () => {
       await testSnapshot("library-dependencies");

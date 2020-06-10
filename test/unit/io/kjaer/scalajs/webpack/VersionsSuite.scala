@@ -18,4 +18,9 @@ class VersionsSuite extends munit.FunSuite {
     val binVersion = rightOrFail2(scalaJSBinaryVersion("1.0.0-RC1"))
     assertEquals(binVersion, "1.0-RC1")
   }
+
+  test("scalaJSBinaryVersion of 1.1.0 is 1") {
+    val binVersion = rightOrFail2(scalaJSBinaryVersion("1.1.0"))
+    assertEquals(binVersion, "1")
+  }
 }

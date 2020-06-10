@@ -20,6 +20,8 @@ Import Scala.js code in a Webpack project, without having to set up a separate S
 
 scalajs-webpack-loader is similar to [scalajs-bundler](https://github.com/scalacenter/scalajs-bundler) in that it is a tool that uses Webpack to bundle Scala.js code alongside JavaScript code. Use scalajs-bundler if your build tool is SBT, and use scalajs-webpack-loader if your build tool is Webpack.
 
+The loader supports Scala.js 1.x. It should also work on Scala.js 0.6.15 – 0.6.33, but note that only 1.x is tested for and explicitly supported.
+
 ## Installing
 
 Install scalajs-webpack-loader as a dev-dependency of your NPM package by running:

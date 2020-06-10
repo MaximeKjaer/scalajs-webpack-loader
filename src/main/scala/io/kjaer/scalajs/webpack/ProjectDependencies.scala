@@ -7,12 +7,13 @@ import coursier.{moduleNameString => name}
 case class ProjectDependencies(
     scalaCompiler: Dependency,
     scalaJSCompiler: Dependency,
+    scalaJSLinker: Dependency,
     scalaJSLib: Dependency,
     scalaJSCLI: Dependency,
     libraryDependencies: Seq[Dependency]
 ) {
   def toSeq: Seq[Dependency] =
-    Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI) ++ libraryDependencies
+    Seq(scalaCompiler, scalaJSCompiler, scalaJSLib, scalaJSCLI, scalaJSLinker) ++ libraryDependencies
 }
 
 object ProjectDependencies {
@@ -35,13 +36,17 @@ object ProjectDependencies {
             Module(org"org.scala-js", ModuleName(s"scalajs-compiler_${versions.scalaVersion}")),
             versions.scalaJSVersion
           ),
+          scalaJSLinker = Dependency(
+            Module(org"org.scala-js", ModuleName(s"scalajs-linker_${versions.scalaBinVersion}")),
+            versions.scalaJSVersion
+          ),
           scalaJSLib = Dependency(
             Module(org"org.scala-js", ModuleName(s"scalajs-library_${versions.scalaBinVersion}")),
             versions.scalaJSVersion
           ),
           scalaJSCLI = Dependency(
             Module(org"org.scala-js", ModuleName(s"scalajs-cli_${versions.scalaBinVersion}")),
-            versions.scalaJSVersion
+            scalaJSCLIVersion(versions.scalaJSVersion)
           ),
           libraryDependencies = parsedDependencies
         )
@@ -70,4 +75,20 @@ object ProjectDependencies {
           "'org::name:version' or 'org:::name:version'"
       )
   }
+
+  /**
+    * Returns the version of the Scala.js CLI to use to link with the given Scala.js version.
+    *
+    * For Scala.js 1.x, the CLI should be version 1.0.0; the version of the linker is set not by
+    * using a specific CLI version, but by loading the correct linker onto the classpath of the CLI.
+    *
+    * For Scala.js 0.6.x, however, the CLI should have the same version number as the Scala.js
+    * linker.
+    *
+    * @param scalaJSVersion Scala.js version with which the project should be compiled
+    * @return Version of `org.scala-js:scalajs-cli` that should be used
+    */
+  private[webpack] def scalaJSCLIVersion(scalaJSVersion: String): String =
+    if (scalaJSVersion.startsWith("1")) "1.0.0"
+    else scalaJSVersion
 }
