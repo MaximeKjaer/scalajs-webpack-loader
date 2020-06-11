@@ -1,6 +1,6 @@
 {
   "name": "scalajs-webpack-loader",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "config": {
     "prettier_files": "**/*.{json,ts,tsx,js,jsx,md,yml}",
