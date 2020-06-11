@@ -1,13 +1,12 @@
 package io.kjaer.scalajs.webpack
 
-object Utils {
-  def rightOrFail1[T](either: Either[String, T]): T = either match {
-    case Right(value)  => value
-    case Left(message) => throw new RuntimeException(message)
-  }
+import munit.Assertions.fail
 
-  def rightOrFail2[T](either: Either[LoaderException, T]): T = either match {
-    case Right(value) => value
-    case Left(err)    => throw err
+object Utils {
+  def getRight[L, R](either: Either[L, R])(implicit loc: munit.Location): R = either match {
+    case Right(value)          => value
+    case Left(err: Throwable)  => fail("Could not get right", err)
+    case Left(message: String) => fail(message)
+    case Left(left)            => fail(s"Could not get right, got ${left.toString}")
   }
 }
