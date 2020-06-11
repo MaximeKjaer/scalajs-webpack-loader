@@ -35,7 +35,7 @@ object Bloop {
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = List.empty,
-        classpath = dependencies.classpath.toList, // TODO these are not all classes
+        classpath = dependencies.classpath.toList,
         out = ctx.options.targetDirectory,
         classesDir = ctx.options.classesDirectory,
         resources = None,

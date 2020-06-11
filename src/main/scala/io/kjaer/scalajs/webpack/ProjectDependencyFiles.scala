@@ -6,12 +6,16 @@ case class ProjectDependencyFiles(
     scalaCompiler: DependencyFile,
     scalaJSCompiler: DependencyFile,
     scalaJSLibrary: DependencyFile,
-    scalaJSCLI: DependencyFile,
+    scalaJSCLI: DependencyFile, // TODO remove once we have bloop support
     libraryDependencies: Seq[DependencyFile]
 ) {
 
-  /** Classpath needed to compile the project */
-  def classpath: Seq[String] = DependencyFile.classpath(scalaJSLibrary +: libraryDependencies)
+  /** Classpath of all JARs needed for compilation, including compilers and libraries */
+  def classpath: Seq[String] = {
+    DependencyFile.classpath(
+      scalaCompiler +: scalaJSCompiler +: scalaJSLibrary +: libraryDependencies
+    )
+  }
 }
 
 object ProjectDependencyFiles {
