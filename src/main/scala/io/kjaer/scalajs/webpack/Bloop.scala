@@ -45,7 +45,7 @@ object Bloop {
             name = scalaCompiler.module.name.value,
             version = scalaCompiler.version,
             options = ctx.options.scalacOptions.toList,
-            jars = List.empty,
+            jars = dependencies.scalaCompiler.classpath.toList,
             analysis = None,
             setup = None
           )
