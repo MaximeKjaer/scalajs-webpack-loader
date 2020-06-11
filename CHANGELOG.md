@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.6
+
+- Add support for Scala.js 1.1.0 ([#2](https://github.com/MaximeKjaer/scalajs-webpack-loader/issues/2))
+
 ## v0.0.5
 
 This release is all about better error messages!
