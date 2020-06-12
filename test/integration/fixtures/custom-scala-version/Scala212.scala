@@ -9,4 +9,8 @@ object Scala212 {
     val x: Traversable[String] = Seq("Hello", "world")
     println(x.mkString(" "))
   }
+
+  def main(args: Array[String]): Unit = {
+    // TODO remove this when bloop#1304 is fixed
+  }
 }

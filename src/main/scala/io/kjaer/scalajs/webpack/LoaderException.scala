@@ -53,6 +53,8 @@ case class DownloadException(errors: Seq[String])
     )
 
 sealed abstract class CompilationException(message: String) extends LoaderException(message)
+case class BloopLaunchException(stderr: String)
+    extends CompilationException(s"Failed to launch bloop:\n$stderr")
 case class CompilerException(stderr: String)
     extends CompilationException(s"Scala.js compilation failed with the following output:\n$stderr")
 case class LinkerException(stderr: String)

@@ -64,13 +64,12 @@ object Loader {
     scalaFiles.foreach(ctx.loader.addDependency)
 
     val targetDirectory = ctx.options.targetDirectory
-    val classesDirectory = ctx.options.classesDirectory
     val cacheDir = ctx.options.cacheDirectory
     val dependencies = ctx.options.dependencies
     val targetFile = path.join(targetDirectory, "bundle.js")
     val projectName = "FIXME-TMP-VALUE"
 
-    fs.emptyDirSync(ctx.options.classesDirectory) // TODO do not empty dir if Bloop can do incremental compilation
+    fs.ensureDirSync(ctx.options.classesDirectory)
     fs.ensureDirSync(Bloop.bloopDirectory)
 
     // These can run concurrently:
@@ -87,8 +86,9 @@ object Loader {
         dependencies = projectDependencyFiles
       )
       _ <- writeFile(Bloop.configFile(projectName), bloop.config.write(bloopConfig))
-      compilationOutput <- compile(scalaFiles, classesDirectory, projectDependencyFiles)
-      linkingOutput <- link(classesDirectory, targetFile, projectDependencyFiles)
+      launchOutput <- launchBloop(bloopFiles.bloopLauncher)
+      compileOutput <- compileWithBloop(bloopFiles.bloopFrontend, projectName)
+      linkOutput <- linkWithBloop(bloopFiles.bloopFrontend, projectName)
       outputFile <- readFile(targetFile)
     } yield outputFile
   }
@@ -104,65 +104,53 @@ object Loader {
 
   private def fetchBloop(
       cacheDir: String
-  )(implicit ctx: Context): EitherT[Future, LoaderException, DependencyFile] = {
-    DependencyFetch.fetch(Seq(Bloop.Dependencies.bloopLauncher), cacheDir)(ctx.logger).map {
-      case (resolution, files) =>
-        DependencyFile.fromResolution(resolution, Bloop.Dependencies.bloopLauncher, files)
+  )(implicit ctx: Context): EitherT[Future, LoaderException, Bloop.DependencyFiles] = {
+    DependencyFetch.fetch(Bloop.Dependencies.All, cacheDir)(ctx.logger).map {
+      case (resolution, files) => Bloop.DependencyFiles.fromResolution(resolution, files)
     }
   }
 
-  private def compile(
-      scalaFiles: Iterable[String],
-      classesDir: String,
-      projectDependencies: ProjectDependencyFiles
+  private def launchBloop(
+      launcher: DependencyFile
   )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
-    val javaOptions =
-      Seq(
-        "-cp",
-        projectDependencies.scalaCompiler.classpath.mkString(":"),
-        "scala.tools.nsc.Main"
-      )
-
-    val plugin = Seq("-Xplugin:" + projectDependencies.scalaJSCompiler.jarPath)
-    val destination = Seq("-d", classesDir)
-    val classpath = Seq(
-      "-classpath",
-      DependencyFile
-        .classpath(
-          projectDependencies.scalaJSLibrary +: projectDependencies.libraryDependencies
-        )
-        .mkString(":")
+    // See https://scalacenter.github.io/bloop/docs/launcher-reference#usage
+    // See https://github.com/scalacenter/bloop/blob/master/launcher/src/main/scala/bloop/launcher/Launcher.scala
+    val javaOptions = Seq(
+      "-cp",
+      launcher.classpath.mkString(":"),
+      "bloop.launcher.Launcher"
     )
-    val scalaOptions = plugin ++ ctx.options.scalacOptions ++ destination ++ classpath
+    val bloopOptions = Seq(Bloop.Dependencies.version, "--skip-bsp-connection")
 
-    ctx.logger.operation("Compiling") {
-      execCommand("java", javaOptions ++ scalaOptions ++ scalaFiles).leftMap(CompilerException)
+    ctx.logger.operation("Launching bloop") {
+      execCommand("java", javaOptions ++ bloopOptions)
+        .leftMap(BloopLaunchException)
     }
   }
 
-  private def link(
-      classesDir: String,
-      targetFile: String,
-      projectDependencies: ProjectDependencyFiles
+  private def compileWithBloop(
+      frontend: DependencyFile,
+      projectName: String
   )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
-    val javaOptions =
-      Seq(
-        "-cp",
-        projectDependencies.scalaJSCLI.classpath.mkString(":"),
-        "org.scalajs.cli.Scalajsld"
-      )
-
-    val stdlib = Seq("--stdlib", projectDependencies.scalaJSLibrary.jarPath)
-    val moduleKind = Seq("--moduleKind", ctx.options.moduleKind)
-    val output = Seq("--output", targetFile)
-    val mainMethod = ctx.options.mainMethod.map(Seq("--mainMethod", _)).getOrElse(Seq.empty)
-    val scalajsldOptions = stdlib ++ moduleKind ++ output ++ mainMethod
-
-    val classpath = DependencyFile.classpath(projectDependencies.libraryDependencies) :+ classesDir
-
-    ctx.logger.operation("Linking") {
-      execCommand("java", javaOptions ++ scalajsldOptions ++ classpath).leftMap(LinkerException)
+    ctx.logger.operation("Compiling with bloop") {
+      bloopRun(frontend, Seq("compile", projectName)).leftMap(CompilerException)
     }
+  }
+
+  private def linkWithBloop(
+      frontend: DependencyFile,
+      projectName: String
+  )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
+    ctx.logger.operation("Linking with bloop") {
+      bloopRun(frontend, Seq("link", projectName)).leftMap(LinkerException)
+    }
+  }
+
+  private def bloopRun(
+      frontend: DependencyFile,
+      command: Seq[String]
+  ): EitherT[Future, String, String] = {
+    execCommand("java", Seq("-cp", frontend.classpath.mkString(":"), "bloop.Cli") ++ command)
   }
 
   private def execCommand(

@@ -6,4 +6,8 @@ object HelloWorld {
   def sayHello(): Unit = {
     println("Hello world!")
   }
+
+  def main(args: Array[String]): Unit = {
+    // TODO remove this when bloop#1304 is fixed
+  }
 }

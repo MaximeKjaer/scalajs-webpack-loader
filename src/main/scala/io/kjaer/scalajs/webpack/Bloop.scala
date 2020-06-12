@@ -1,14 +1,35 @@
 package io.kjaer.scalajs.webpack
 
-import coursier.{dependencyString => dep}
+import coursier.{Dependency, moduleString => mod}
 import bloop.config.Config
-
 import typings.node.pathMod.{^ => path}
 import typings.node.processMod.{^ => process}
 
 object Bloop {
   object Dependencies {
-    val bloopLauncher = dep"ch.epfl.scala:bloop-launcher_2.12:1.4.1"
+    val version = "1.4.1"
+
+    val bloopLauncher = Dependency(mod"ch.epfl.scala:bloop-launcher_2.12", version)
+    val bloopFrontend = Dependency(mod"ch.epfl.scala:bloop-frontend_2.12", version)
+
+    val All = Seq(bloopLauncher, bloopFrontend)
+  }
+
+  case class DependencyFiles(bloopLauncher: DependencyFile, bloopFrontend: DependencyFile)
+
+  object DependencyFiles {
+    def fromResolution(
+        resolution: coursier.Resolution,
+        files: Map[DependencyId, String]
+    ): DependencyFiles = {
+      def dependencyFile(dependency: Dependency): DependencyFile =
+        DependencyFile.fromResolution(resolution, dependency, files)
+
+      DependencyFiles(
+        bloopLauncher = dependencyFile(Dependencies.bloopLauncher),
+        bloopFrontend = dependencyFile(Dependencies.bloopFrontend)
+      )
+    }
   }
 
   def bloopDirectory: String =
@@ -27,7 +48,7 @@ object Bloop {
     val scalaCompiler = ctx.options.dependencies.scalaCompiler
 
     Config.File(
-      version = Config.File.LatestVersion,
+      version = Bloop.Dependencies.version,
       project = Config.Project(
         name = projectName,
         directory = ctx.options.currentDirectory,
@@ -58,7 +79,7 @@ object Bloop {
           Config.Platform.Js(
             config = Config.JsConfig(
               version = ctx.options.versions.scalaJSVersion,
-              mode = Config.LinkerMode.Release, // todo expose this option
+              mode = Config.LinkerMode.Debug, // todo expose this option
               kind = Config.ModuleKindJS.CommonJSModule,
               emitSourceMaps = false, // todo expose this option
               jsdom = None,

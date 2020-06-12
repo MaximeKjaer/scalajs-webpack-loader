@@ -7,4 +7,8 @@ object HelloWorld {
   def sayHello(): Unit = {
     println(write(Seq(1, 2, 3)))
   }
+
+  def main(args: Array[String]): Unit = {
+    // TODO remove this when bloop#1304 is fixed
+  }
 }
