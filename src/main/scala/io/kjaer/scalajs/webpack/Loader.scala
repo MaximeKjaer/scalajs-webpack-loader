@@ -4,8 +4,8 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation._
 import scala.scalajs.js.|
 
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise}
 import scala.util.Failure
 import scala.util.Success
 
@@ -13,7 +13,7 @@ import coursier.util.EitherT
 
 import typings.node.pathMod.{^ => path}
 import typings.fsExtra.{mod => fs}
-import typings.node.{Buffer, nodeStrings, childProcessMod => childProcess}
+import typings.node.Buffer
 import typings.webpack.mod.loader.LoaderContext
 import typings.sourceMap.mod.RawSourceMap
 
@@ -43,7 +43,7 @@ object Loader {
       }
     }
 
-  private def load(self: LoaderContext): EitherT[Future, LoaderException, Buffer] =
+  private def load(self: LoaderContext): EitherT[Future, LoaderException, Buffer] = {
     for {
       options <- EitherT.fromEither(Options.get(self, name))
       parsedOptions <- EitherT.fromEither(ParsedOptions.parse(options))
@@ -51,6 +51,7 @@ object Loader {
       ctx = Context(self, parsedOptions, logger)
       buffer <- downloadAndCompile(ctx)
     } yield buffer
+  }
 
   private def downloadAndCompile(
       implicit ctx: Context
@@ -85,11 +86,11 @@ object Loader {
         scalaDirectory = scalaDirectory,
         dependencies = projectDependencyFiles
       )
-      _ <- writeFile(Bloop.configFile(projectName), bloop.config.write(bloopConfig))
-      launchOutput <- launchBloop(bloopFiles.bloopLauncher)
-      compileOutput <- compileWithBloop(bloopFiles.bloopFrontend, projectName)
-      linkOutput <- linkWithBloop(bloopFiles.bloopFrontend, projectName)
-      outputFile <- readFile(targetFile)
+      _ <- NodeUtils.writeFile(Bloop.configFile(projectName), bloop.config.write(bloopConfig))
+      _ <- launchBloop(bloopFiles.bloopLauncher)
+      _ <- compileWithBloop(bloopFiles.bloopFrontend, projectName)
+      _ <- linkWithBloop(bloopFiles.bloopFrontend, projectName)
+      outputFile <- NodeUtils.readFile(targetFile)
     } yield outputFile
   }
 
@@ -115,15 +116,10 @@ object Loader {
   )(implicit ctx: Context): EitherT[Future, LoaderException, String] = {
     // See https://scalacenter.github.io/bloop/docs/launcher-reference#usage
     // See https://github.com/scalacenter/bloop/blob/master/launcher/src/main/scala/bloop/launcher/Launcher.scala
-    val javaOptions = Seq(
-      "-cp",
-      launcher.classpath.mkString(":"),
-      "bloop.launcher.Launcher"
-    )
     val bloopOptions = Seq(Bloop.Dependencies.version, "--skip-bsp-connection")
-
     ctx.logger.operation("Launching bloop") {
-      execCommand("java", javaOptions ++ bloopOptions)
+      NodeUtils
+        .execJava(launcher.classpath, "bloop.launcher.Launcher", bloopOptions)
         .leftMap(BloopLaunchException)
     }
   }
@@ -149,67 +145,6 @@ object Loader {
   private def bloopRun(
       frontend: DependencyFile,
       command: Seq[String]
-  ): EitherT[Future, String, String] = {
-    execCommand("java", Seq("-cp", frontend.classpath.mkString(":"), "bloop.Cli") ++ command)
-  }
-
-  private def execCommand(
-      command: String,
-      options: Seq[String]
-  ): EitherT[Future, String, String] = {
-    val promise = Promise[Either[String, String]]()
-    val stdout = new StringBuilder()
-    val stderr = new StringBuilder()
-    val process = childProcess.spawn(command, js.Array(options: _*))
-
-    process
-      .on_exit(
-        nodeStrings.exit,
-        (code, signals) => {
-          if (code.asInstanceOf[Double] == 0d)
-            promise.success(Right(stdout.mkString))
-          else
-            promise.success(
-              Left(
-                stderr.mkString + s"\nExited with code $code (because of $signals)"
-              )
-            )
-        }
-      )
-
-    process.stdout_ChildProcessWithoutNullStreams
-      .on_data(nodeStrings.data, (buffer) => {
-        val data = buffer.asInstanceOf[typings.node.Buffer].toString()
-        stdout.appendAll(data)
-      })
-
-    process.stderr_ChildProcessWithoutNullStreams
-      .on_data(nodeStrings.data, (buffer) => {
-        val data = buffer.asInstanceOf[typings.node.Buffer].toString()
-        stderr.appendAll(data)
-      })
-
-    EitherT(promise.future)
-  }
-
-  private def readFile(path: String): EitherT[Future, LoaderException, Buffer] = {
-    EitherT(
-      fs.readFile(path)
-        .toFuture
-        .map(Right(_))
-        .recover(err => Left(FileReadException(path, err.getMessage)))
-    )
-  }
-
-  private def writeFile(
-      path: String,
-      contents: String
-  ): EitherT[Future, LoaderException, Unit] = {
-    EitherT(
-      fs.writeFile(path, contents)
-        .toFuture
-        .map(Right(_))
-        .recover(err => Left(FileWriteException(path, err.getMessage)))
-    )
-  }
+  ): EitherT[Future, String, String] =
+    NodeUtils.execJava(frontend.classpath, "bloop.Cli", command)
 }
