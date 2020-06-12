@@ -4,6 +4,7 @@ import coursier.{dependencyString => dep}
 import bloop.config.Config
 
 import typings.node.pathMod.{^ => path}
+import typings.node.processMod.{^ => process}
 
 object Bloop {
   object Dependencies {
@@ -62,7 +63,7 @@ object Bloop {
               emitSourceMaps = false, // todo expose this option
               jsdom = None,
               output = Some(ctx.options.targetFile),
-              nodePath = None,
+              nodePath = Some(process.execPath),
               toolchain = List.empty
             ),
             mainClass = None
