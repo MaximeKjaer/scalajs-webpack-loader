@@ -45,7 +45,7 @@ object Bloop {
             organization = scalaCompiler.module.organization.value,
             name = scalaCompiler.module.name.value,
             version = scalaCompiler.version,
-            options = ctx.options.scalacOptions.toList,
+            options = s"-Xplugin:${dependencies.scalaJSCompiler.jarPath}" +: ctx.options.scalacOptions.toList,
             jars = dependencies.scalaCompiler.classpath.toList,
             analysis = None,
             setup = None
