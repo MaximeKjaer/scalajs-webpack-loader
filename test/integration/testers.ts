@@ -15,6 +15,12 @@ export async function testSnapshot(fixture: string): Promise<void> {
     "snapshots",
     fixture + ".actual.js"
   );
+  if (!fs.existsSync(expectedFile)) {
+    throw new Error(
+      "Snapshot file is missing at! To create it, run:\n" +
+        `       touch ${expectedFile}`
+    );
+  }
   const [actual, expected] = await Promise.all([
     run(fixture),
     fs.promises.readFile(expectedFile)
@@ -26,6 +32,8 @@ export async function testSnapshot(fixture: string): Promise<void> {
   assert(
     pass,
     `Actual output did not equal. Dumped actual results to ${actualDumpFile}\n` +
+      "     To run the actual output bundle, run:\n" +
+      `       node ${actualDumpFile}\n` +
       "     To override the expected output with the actual, run:\n" +
       `       mv ${actualDumpFile} ${expectedFile}`
   );
