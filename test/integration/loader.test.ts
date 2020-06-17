@@ -9,6 +9,12 @@ describe("loader", function() {
     }).timeout(networkTimeout);
   });
 
+  describe("imports", () => {
+    it("outputs the snapshot", async () => {
+      await testSnapshot("imports");
+    }).timeout(networkTimeout);
+  });
+
   describe("wrong-options", () => {
     it("fails with a schema validation error", async () => {
       await testError(
