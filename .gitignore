@@ -12,24 +12,24 @@ project/metals.sbt
 .idea
 
 # sbt
-dist
+dist/
 target/
 lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
 .history
-.cache
+.cache/
 .lib/
 
 # Dotty
 .dotty-ide-disabled
 
 # NPM
-node_modules
+node_modules/
 
 # Integration test artifacts
-test-target
+test-target/
 
 # Temporary snapshot files
-test/integration/snapshots/*.expected.js
+test/integration/snapshots/*.actual.js
